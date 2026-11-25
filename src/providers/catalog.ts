@@ -74,7 +74,6 @@ export const PROVIDERS: ProviderInfo[] = [
       { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', about: 'The previous Haiku. Haiku 5.5 is newer and much cheaper.' },
       { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', about: 'A good balance of quality and speed. Worth it for dense or technical notes.' },
       { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', about: 'Stronger reasoning for hard subjects like advanced maths, law or medicine. Slower.' },
-      { id: 'claude-fable-5-2', name: 'Claude Fable 5.2', about: 'Anthropic’s most capable model. Rarely needed for flashcards.' },
     ],
     recommended: 'claude-haiku-5-5',
   },
