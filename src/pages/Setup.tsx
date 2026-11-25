@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import ErrorMessage from '../components/ErrorMessage'
 import { WhatIsAKey } from '../components/Explainer'
 import { checkAnthropicKey } from '../providers/anthropic'
-import { ANTHROPIC, guessProvider, providerInfo } from '../providers/catalog'
+import { ACTIVE_PROVIDER as provider, guessProvider, providerInfo } from '../providers/catalog'
 import { friendlyError, type FriendlyError } from '../providers/errors'
 import { saveProviderSettings, useProviderSettings } from '../settings'
 import { btn, input, link, muted, okBox, panel, warnBox } from '../ui'
@@ -18,11 +18,11 @@ export default function Setup() {
   const trimmed = key.trim()
   const guessed = trimmed ? guessProvider(trimmed) : undefined
   const formatHint =
-    !trimmed || guessed === 'anthropic'
+    !trimmed || guessed === provider.id
       ? null
       : guessed
-        ? `This looks like a ${providerInfo(guessed).name} key. StudyKey currently works with Anthropic keys, which start with sk-ant-.`
-        : 'Anthropic keys start with sk-ant-. Check that you copied the whole key.'
+        ? `This looks like a ${providerInfo(guessed).company} key. StudyKey can't use ${providerInfo(guessed).company} keys yet; ${provider.company} keys start with ${provider.keyPrefix}.`
+        : `${provider.company} keys start with ${provider.keyPrefix}. Check that you copied the whole key.`
 
   async function checkAndSave() {
     if (check.kind === 'checking') return
@@ -32,7 +32,7 @@ export default function Setup() {
       await saveProviderSettings({
         provider: 'anthropic',
         apiKey: trimmed,
-        model: providers?.anthropic.model || ANTHROPIC.presets[0].model,
+        model: providers?.anthropic.model || provider.presets[0].model,
       })
       setCheck({ kind: 'ok' })
     } catch (e) {
@@ -42,27 +42,27 @@ export default function Setup() {
 
   const steps = [
     {
-      title: 'Create a free Anthropic account',
-      body: 'Anthropic makes Claude, the AI StudyKey uses. Sign up with your email or Google account.',
-      href: ANTHROPIC.signupUrl,
-      cta: 'Open Anthropic',
+      title: `Create a free ${provider.company} account`,
+      body: `${provider.company} makes ${provider.aiName}, the AI StudyKey will use. Sign up with your email or Google account.`,
+      href: provider.signupUrl,
+      cta: `Open ${provider.company}`,
     },
     {
       title: 'Add a little credit',
       body: 'Open Billing and buy a small amount of credit, for example $5. On the cheapest setting that covers hundreds of sets of notes. You only pay for what you use.',
-      href: ANTHROPIC.billingUrl,
+      href: provider.billingUrl,
       cta: 'Open Billing',
     },
     {
       title: 'Set a monthly spending limit (recommended)',
-      body: 'Open Limits and set a monthly limit, for example $5. Anthropic will refuse anything past that, so you can never be charged more, even by mistake.',
-      href: ANTHROPIC.limitsUrl,
+      body: `Open Limits and set a monthly limit, for example $5. ${provider.company} will refuse anything past that, so you can never be charged more, even by mistake.`,
+      href: provider.limitsUrl,
       cta: 'Open Limits',
     },
     {
       title: 'Create your key',
-      body: 'Open the keys page, click "Create Key", name it StudyKey, then copy it. It starts with sk-ant-. You can only see it once, so paste it below straight away.',
-      href: ANTHROPIC.keyUrl,
+      body: `Open the keys page, create a new key, name it StudyKey, then copy it. It starts with ${provider.keyPrefix}. You can usually only see it once, so paste it below straight away.`,
+      href: provider.keyUrl,
       cta: 'Open keys page',
     },
   ]
@@ -102,7 +102,7 @@ export default function Setup() {
               autoComplete="off"
               spellCheck={false}
               className={input}
-              placeholder={ANTHROPIC.keyPlaceholder}
+              placeholder={provider.keyPlaceholder}
               value={key}
               onChange={(e) => {
                 setKey(e.target.value)

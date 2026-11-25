@@ -10,6 +10,8 @@ export interface QualityPreset {
 export interface ProviderInfo {
   id: ProviderId
   name: string
+  company: string
+  aiName: string
   supported: boolean
   keyPrefix: string
   keyPlaceholder: string
@@ -24,6 +26,8 @@ export const PROVIDERS: ProviderInfo[] = [
   {
     id: 'anthropic',
     name: 'Anthropic (Claude)',
+    company: 'Anthropic',
+    aiName: 'Claude',
     supported: true,
     keyPrefix: 'sk-ant-',
     keyPlaceholder: 'sk-ant-...',
@@ -49,6 +53,8 @@ export const PROVIDERS: ProviderInfo[] = [
   {
     id: 'openai',
     name: 'OpenAI',
+    company: 'OpenAI',
+    aiName: 'ChatGPT',
     supported: false,
     keyPrefix: 'sk-',
     keyPlaceholder: 'sk-...',
@@ -61,6 +67,8 @@ export const PROVIDERS: ProviderInfo[] = [
   {
     id: 'gemini',
     name: 'Google Gemini',
+    company: 'Google',
+    aiName: 'Gemini',
     supported: false,
     keyPrefix: 'AIza',
     keyPlaceholder: 'AIza...',
@@ -72,11 +80,12 @@ export const PROVIDERS: ProviderInfo[] = [
   },
 ]
 
-export const ANTHROPIC = PROVIDERS[0]
-
 export function providerInfo(id: ProviderId): ProviderInfo {
   return PROVIDERS.find((p) => p.id === id)!
 }
+
+// The provider StudyKey generates with. Only one is supported until the others' adapters exist.
+export const ACTIVE_PROVIDER = PROVIDERS.find((p) => p.supported)!
 
 export function defaultModel(id: ProviderId): string {
   return providerInfo(id).presets[0]?.model ?? ''

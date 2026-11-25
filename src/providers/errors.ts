@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { ANTHROPIC } from './catalog'
+import { ACTIVE_PROVIDER } from './catalog'
 
 export interface FriendlyError {
   message: string
@@ -20,7 +20,7 @@ export function friendlyError(error: unknown): FriendlyError {
   if (error instanceof Anthropic.PaymentRequiredError || isLowCredit(error)) {
     return {
       message: 'Your AI account is out of credit.',
-      link: { href: ANTHROPIC.billingUrl, label: 'Add credit' },
+      link: { href: ACTIVE_PROVIDER.billingUrl, label: 'Add credit to your AI account' },
     }
   }
   if (error instanceof Anthropic.RateLimitError) {

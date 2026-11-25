@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { HowItWorks, WhatIsAKey } from '../components/Explainer'
-import { ANTHROPIC } from '../providers/catalog'
+import { ACTIVE_PROVIDER as provider } from '../providers/catalog'
 import { link, panel } from '../ui'
 
 const faqs: { q: string; a: ReactNode }[] = [
@@ -9,8 +9,8 @@ const faqs: { q: string; a: ReactNode }[] = [
     q: 'Why do I pay the AI company and not StudyKey?',
     a: (
       <>
-        StudyKey doesn't run its own AI. The AI that writes your cards belongs to a company like Anthropic, so the cost
-        goes straight to them, at their normal prices. Apps with a subscription pay the same AI companies and add a
+        StudyKey doesn't run its own AI. The AI that writes your cards belongs to an AI company (such as Anthropic,
+        OpenAI or Google), so the cost goes straight to them, at their normal prices. Apps with a subscription pay the same AI companies and add a
         markup, plus usage limits. With StudyKey there's no middleman.
       </>
     ),
@@ -48,8 +48,8 @@ const faqs: { q: string; a: ReactNode }[] = [
       <>
         StudyKey will tell you your AI account is out of credit. Nothing is lost. Your decks and studying still work
         without credit, because credit is only needed to make new cards. Add more on{' '}
-        <a href={ANTHROPIC.billingUrl} target="_blank" rel="noreferrer" className={link}>
-          Anthropic's billing page ↗
+        <a href={provider.billingUrl} target="_blank" rel="noreferrer" className={link}>
+          your AI account's billing page ↗
         </a>
         .
       </>
@@ -61,10 +61,10 @@ const faqs: { q: string; a: ReactNode }[] = [
       <>
         StudyKey only spends when you press Make cards. To be extra safe: set a monthly budget in Settings, set a
         spending limit in your{' '}
-        <a href={ANTHROPIC.limitsUrl} target="_blank" rel="noreferrer" className={link}>
-          Anthropic account ↗
+        <a href={provider.limitsUrl} target="_blank" rel="noreferrer" className={link}>
+          AI account ↗
         </a>
-        , or delete your key on Anthropic's keys page so it stops working everywhere.
+        , or delete your key on your AI company's website so it stops working everywhere.
       </>
     ),
   },

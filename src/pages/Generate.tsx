@@ -10,7 +10,7 @@ import { recordSpend, useMonthSpend } from '../cost/ledger'
 import { costUsd, formatUsd, priceFor } from '../cost/pricing'
 import { db } from '../db'
 import { generateWithAnthropic } from '../providers/anthropic'
-import { ANTHROPIC } from '../providers/catalog'
+import { ACTIVE_PROVIDER as provider } from '../providers/catalog'
 import { friendlyError, mayHaveBeenBilled, type FriendlyError } from '../providers/errors'
 import { saveProviderSettings, useLimits, useProviderSettings } from '../settings'
 import { btn, btnDanger, btnSecondary, input, link, muted, panel, warnBox } from '../ui'
@@ -113,7 +113,7 @@ export default function Generate() {
   const blocked = budgetStatus === 'over' && !overBudgetOnce
   const extraConfirm = needsExtraConfirm(estimate.maxCost, limits.confirmThreshold)
   const canSend = notes.trim().length > 0 && !tooLong && !blocked && !pending
-  const preset = ANTHROPIC.presets.find((p) => p.model === model)
+  const preset = provider.presets.find((p) => p.model === model)
 
   function resetConfirm() {
     if (status.kind === 'confirming') setStatus({ kind: 'idle' })
@@ -329,7 +329,7 @@ export default function Generate() {
 
           <fieldset className="space-y-1">
             <legend className="text-sm font-medium">Quality</legend>
-            {ANTHROPIC.presets.map((p) => (
+            {provider.presets.map((p) => (
               <label key={p.id} className="flex items-center gap-2 text-sm">
                 <input
                   type="radio"

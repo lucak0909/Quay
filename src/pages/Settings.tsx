@@ -5,7 +5,7 @@ import { useMonthSpend } from '../cost/ledger'
 import { formatUsd, PRICES } from '../cost/pricing'
 import type { ProviderSettings } from '../db'
 import { checkAnthropicKey } from '../providers/anthropic'
-import { ANTHROPIC } from '../providers/catalog'
+import { ACTIVE_PROVIDER as provider } from '../providers/catalog'
 import { friendlyError, type FriendlyError } from '../providers/errors'
 import { saveLimits, saveProviderSettings, useLimits, useProviderSettings, type Limits } from '../settings'
 import { btn, btnDanger, btnSecondary, input, link, muted, okBox, panel } from '../ui'
@@ -70,7 +70,7 @@ function AccountSection({ anthropic }: { anthropic: ProviderSettings }) {
     <section className={`${panel} space-y-3`}>
       <h2 className="font-semibold">Your AI account</h2>
       <p className="text-sm">
-        Connected to Anthropic with the key ending in <code>…{anthropic.apiKey.slice(-4)}</code>. It's stored only on
+        Connected to {provider.company} with the key ending in <code>…{anthropic.apiKey.slice(-4)}</code>. It's stored only on
         this device.
       </p>
       <div className="flex flex-wrap gap-2">
@@ -106,11 +106,11 @@ function AccountSection({ anthropic }: { anthropic: ProviderSettings }) {
 }
 
 function QualitySection({ anthropic }: { anthropic: ProviderSettings }) {
-  const custom = !ANTHROPIC.presets.some((p) => p.model === anthropic.model)
+  const custom = !provider.presets.some((p) => p.model === anthropic.model)
   return (
     <section className={`${panel} space-y-3`}>
       <h2 className="font-semibold">Quality</h2>
-      {ANTHROPIC.presets.map((p) => (
+      {provider.presets.map((p) => (
         <label key={p.id} className="flex items-start gap-2 text-sm">
           <input
             type="radio"
@@ -196,9 +196,9 @@ function SpendingSection({ limits, spent }: { limits: Limits; spent: number }) {
       </div>
       <p className={muted}>
         StudyKey's budget only covers what you do in StudyKey on this device. For a limit that can't be exceeded, also
-        set one in your Anthropic account.{' '}
-        <a href={ANTHROPIC.limitsUrl} target="_blank" rel="noreferrer" className={link}>
-          Set a limit with Anthropic ↗
+        set one in your AI account.{' '}
+        <a href={provider.limitsUrl} target="_blank" rel="noreferrer" className={link}>
+          Set a spending limit on your AI account ↗
         </a>
       </p>
     </section>
@@ -212,7 +212,7 @@ function AdvancedModel({ anthropic }: { anthropic: ProviderSettings }) {
     <div className="space-y-2">
       <h3 className="text-sm font-medium">Model ID</h3>
       <p className={muted}>
-        The exact Anthropic model name to use. Costs can only be estimated for {Object.keys(PRICES).join(' and ')}; for
+        The exact model name to use, as listed by your AI company. Costs can only be estimated for {Object.keys(PRICES).join(' and ')}; for
         anything else you'll be asked to confirm each request.
       </p>
       <div className="flex gap-2">
