@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import App from './App.tsx'
 import './index.css'
+import Cram from './pages/Cram'
 import DeckView from './pages/DeckView'
+import Study from './pages/Study'
 import Decks from './pages/Decks'
 import Generate from './pages/Generate'
 import Help from './pages/Help'
@@ -20,6 +22,8 @@ const router = createBrowserRouter([
       { path: '/generate', element: <Generate /> },
       { path: '/decks', element: <Decks /> },
       { path: '/decks/:id', element: <DeckView /> },
+      { path: '/decks/:id/study', element: <Study /> },
+      { path: '/decks/:id/cram', element: <Cram /> },
       { path: '/help', element: <Help /> },
       { path: '/settings', element: <Settings /> },
     ],
