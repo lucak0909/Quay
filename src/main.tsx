@@ -25,6 +25,8 @@ const router = createBrowserRouter([
       { path: '/decks/:id', element: <DeckView /> },
       { path: '/decks/:id/study', element: <Study /> },
       { path: '/decks/:id/cram', element: <Cram /> },
+      // The editor is large, so it loads only when a note is opened.
+      { path: '/notes/:id', lazy: () => import('./pages/Note').then((m) => ({ Component: m.default })) },
       { path: '/help', element: <Help /> },
       { path: '/settings', element: <Settings /> },
     ],

@@ -67,10 +67,14 @@ describe('folder tree', () => {
       { id: 'd2', name: 'Algebra', folderId: 'maths', cardCount: 5, dueCount: 1 },
       { id: 'd3', name: 'Loose', cardCount: 3, dueCount: 3 },
     ]
-    const totals = folderTotals(folders, decks)
-    expect(totals.get('school')).toEqual({ decks: 2, cards: 15, due: 5 })
-    expect(totals.get('bio')).toEqual({ decks: 1, cards: 10, due: 4 })
-    expect(totals.get('hobbies')).toEqual({ decks: 0, cards: 0, due: 0 })
+    const notes = [
+      { id: 'n1', name: 'Lecture 1', folderId: 'cells' },
+      { id: 'n2', name: 'Ideas', folderId: 'hobbies' },
+    ]
+    const totals = folderTotals(folders, decks, notes)
+    expect(totals.get('school')).toEqual({ decks: 2, cards: 15, due: 5, notes: 1 })
+    expect(totals.get('bio')).toEqual({ decks: 1, cards: 10, due: 4, notes: 1 })
+    expect(totals.get('hobbies')).toEqual({ decks: 0, cards: 0, due: 0, notes: 1 })
   })
 
   it('flattens the tree with depths, leaving out excluded branches', () => {

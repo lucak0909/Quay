@@ -36,9 +36,24 @@ export function deleteDeck(id: string) {
   })
 }
 
-// 'keep' moves the folder's contents up one level; 'all' deletes every folder, deck and card inside it.
+export async function createNote(folderId?: string) {
+  const now = Date.now()
+  const id = crypto.randomUUID()
+  await db.notes.add({ id, name: '', content: { type: 'doc', content: [] }, text: '', folderId, createdAt: now, updatedAt: now })
+  return id
+}
+
+export function moveNote(id: string, folderId: string | undefined) {
+  return db.notes.update(id, { folderId, updatedAt: Date.now() })
+}
+
+export function deleteNote(id: string) {
+  return db.notes.delete(id)
+}
+
+// 'keep' moves the folder's contents up one level; 'all' deletes every folder, deck, card and note inside it.
 export function deleteFolder(id: string, mode: 'keep' | 'all') {
-  return db.transaction('rw', [db.folders, db.decks, db.cards, db.reviews], async () => {
+  return db.transaction('rw', [db.folders, db.decks, db.cards, db.reviews, db.notes], async () => {
     const folders = await db.folders.toArray()
     const folder = folders.find((f) => f.id === id)
     if (!folder) return
@@ -46,12 +61,14 @@ export function deleteFolder(id: string, mode: 'keep' | 'all') {
       const parentId = parentIn(folders, folder.parentId)
       await db.folders.where('parentId').equals(id).modify({ parentId })
       await db.decks.where('folderId').equals(id).modify({ folderId: parentId })
+      await db.notes.where('folderId').equals(id).modify({ folderId: parentId })
     } else {
       const ids = [...subtreeIds(folders, id)]
       const deckIds = (await db.decks.where('folderId').anyOf(ids).primaryKeys()) as string[]
       await db.cards.where('deckId').anyOf(deckIds).delete()
       await db.reviews.where('deckId').anyOf(deckIds).delete()
       await db.decks.bulkDelete(deckIds)
+      await db.notes.where('folderId').anyOf(ids).delete()
       await db.folders.bulkDelete(ids.filter((f) => f !== id))
     }
     await db.folders.delete(id)

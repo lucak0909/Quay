@@ -5,7 +5,7 @@ import { formatUsd } from './cost/pricing'
 const navItems = [
   { to: '/', label: 'Home' },
   { to: '/generate', label: 'Make cards' },
-  { to: '/decks', label: 'Decks' },
+  { to: '/decks', label: 'Library' },
   { to: '/help', label: 'Help' },
   { to: '/settings', label: 'Settings' },
 ]
