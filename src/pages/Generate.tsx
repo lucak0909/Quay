@@ -63,10 +63,18 @@ export default function Generate() {
   const controller = useRef<AbortController | null>(null)
 
   // Unsaved cards were paid for, so they survive navigation and reloads.
+  // Opened from a note ("Make cards"): start from that note, unless there are unsaved cards to deal with first.
+  const noteId = params.get('note')
   useEffect(() => {
-    db.appSettings.get(DRAFT_KEY).then((row) => {
-      if (row) {
-        const saved = JSON.parse(row.value) as SavedDraft
+    Promise.all([db.appSettings.get(DRAFT_KEY), noteId ? db.notes.get(noteId) : undefined]).then(([row, note]) => {
+      const saved = row ? (JSON.parse(row.value) as SavedDraft) : undefined
+      if (note && !saved?.drafts.length) {
+        setNotes(note.text)
+        setNewDeckName(note.name)
+        setFolderChoice(note.folderId ?? '')
+        setContext(saved?.context ?? '')
+        setFocus(saved?.focus ?? [])
+      } else if (saved) {
         setNotes(saved.notes)
         setDrafts(saved.drafts)
         setContext(saved.context ?? '')
@@ -74,7 +82,7 @@ export default function Generate() {
       }
       setLoaded(true)
     })
-  }, [])
+  }, [noteId])
 
   useEffect(() => {
     if (!loaded) return

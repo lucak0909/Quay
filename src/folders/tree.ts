@@ -67,14 +67,16 @@ export interface Totals {
   decks: number
   cards: number
   due: number
+  notes: number
 }
 
 // Totals for each folder including everything in its subfolders.
 export function folderTotals(
   folders: FolderNode[],
   decks: (DeckNode & { cardCount: number; dueCount: number })[],
+  notes: DeckNode[] = [],
 ): Map<string, Totals> {
-  const totals = new Map<string, Totals>(folders.map((f) => [f.id, { decks: 0, cards: 0, due: 0 }]))
+  const totals = new Map<string, Totals>(folders.map((f) => [f.id, { decks: 0, cards: 0, due: 0, notes: 0 }]))
   for (const deck of decks) {
     for (const folder of folderPath(folders, parentIn(folders, deck.folderId))) {
       const t = totals.get(folder.id)!
@@ -82,6 +84,9 @@ export function folderTotals(
       t.cards += deck.cardCount
       t.due += deck.dueCount
     }
+  }
+  for (const note of notes) {
+    for (const folder of folderPath(folders, parentIn(folders, note.folderId))) totals.get(folder.id)!.notes += 1
   }
   return totals
 }

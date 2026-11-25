@@ -69,7 +69,7 @@ export default function DeckView() {
       <div>
         <nav aria-label="Folders" className={`${muted} flex flex-wrap gap-x-1`}>
           <Link to="/decks" className="hover:underline">
-            ← Decks
+            ← Library
           </Link>
           {path.map((folder) => (
             <span key={folder.id}>
