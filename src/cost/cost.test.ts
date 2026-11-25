@@ -18,6 +18,12 @@ describe('formatUsd', () => {
     expect(formatUsd(0.0037)).toBe('$0.0037')
     expect(formatUsd(0.25)).toBe('$0.25')
     expect(formatUsd(0)).toBe('$0.00')
+    expect(formatUsd(0.004)).toBe('$0.004')
+  })
+
+  it('never renders a tiny amount as a bare "$0."', () => {
+    expect(formatUsd(0.00001)).toBe('under $0.0001')
+    expect(formatUsd(0.00012)).toBe('$0.00012')
   })
 })
 

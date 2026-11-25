@@ -19,6 +19,7 @@ export function costUsd(price: ModelPrice, inputTokens: number, outputTokens: nu
 
 export function formatUsd(amount: number): string {
   if (amount === 0) return '$0.00'
-  if (amount < 0.01) return `$${amount.toFixed(4).replace(/0+$/, '')}`
+  if (amount < 0.0001) return 'under $0.0001'
+  if (amount < 0.01) return `$${Number(amount.toPrecision(2))}`
   return `$${amount.toFixed(2)}`
 }
