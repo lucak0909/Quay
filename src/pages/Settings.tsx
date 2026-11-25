@@ -2,67 +2,65 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import ErrorMessage from '../components/ErrorMessage'
 import { useMonthSpend } from '../cost/ledger'
-import { formatUsd, PRICES } from '../cost/pricing'
-import type { ProviderSettings } from '../db'
-import { checkAnthropicKey } from '../providers/anthropic'
-import { ACTIVE_PROVIDER as provider } from '../providers/catalog'
+import { formatUsd } from '../cost/pricing'
+import { loadAdapter } from '../providers'
 import { friendlyError, type FriendlyError } from '../providers/errors'
-import { saveLimits, saveProviderSettings, useLimits, useProviderSettings, type Limits } from '../settings'
+import { presetBlurb } from '../providers/presets'
+import { saveLimits, saveProviderSettings, useActiveProvider, useLimits, type ActiveProvider, type Limits } from '../settings'
 import { btn, btnDanger, btnSecondary, input, link, muted, okBox, panel } from '../ui'
 
 export default function Settings() {
-  const providers = useProviderSettings()
+  const active = useActiveProvider()
   const limits = useLimits()
   const spent = useMonthSpend()
-  if (!providers || !limits || spent === undefined) return null
-  const anthropic = providers.anthropic
+  if (active === undefined || !limits || spent === undefined) return null
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Settings</h1>
-      <AccountSection anthropic={anthropic} />
-      <QualitySection anthropic={anthropic} />
-      <SpendingSection limits={limits} spent={spent} />
-      <details className={panel}>
-        <summary className="cursor-pointer font-semibold">Advanced</summary>
-        <div className="mt-4 space-y-6">
-          <AdvancedModel key={anthropic.model} anthropic={anthropic} />
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium">Other AI companies</h3>
-            <p className={muted}>Support for OpenAI and Google Gemini keys is coming soon.</p>
+      {active ? (
+        <>
+          <AccountSection key={active.info.id} active={active} />
+          <QualitySection active={active} />
+        </>
+      ) : (
+        <section className={`${panel} space-y-2`}>
+          <h2 className="font-semibold">Your AI account</h2>
+          <p className="text-sm">Not connected yet.</p>
+          <Link to="/setup" className={btn}>
+            Connect your AI account
+          </Link>
+        </section>
+      )}
+      <SpendingSection limits={limits} spent={spent} active={active} />
+      {active && (
+        <details className={panel}>
+          <summary className="cursor-pointer font-semibold">Advanced</summary>
+          <div className="mt-4 space-y-6">
+            <AdvancedModel key={`${active.info.id}:${active.settings.model}`} active={active} />
           </div>
-        </div>
-      </details>
+        </details>
+      )}
     </div>
   )
 }
 
 type CheckState = { kind: 'idle' } | { kind: 'checking' } | { kind: 'ok' } | { kind: 'error'; error: FriendlyError }
 
-function AccountSection({ anthropic }: { anthropic: ProviderSettings }) {
+function AccountSection({ active }: { active: ActiveProvider }) {
+  const { info, settings } = active
   const [check, setCheck] = useState<CheckState>({ kind: 'idle' })
   const [confirmRemove, setConfirmRemove] = useState(false)
-
-  if (!anthropic.apiKey) {
-    return (
-      <section className={`${panel} space-y-2`}>
-        <h2 className="font-semibold">Your AI account</h2>
-        <p className="text-sm">Not connected yet.</p>
-        <Link to="/setup" className={btn}>
-          Connect your AI account
-        </Link>
-      </section>
-    )
-  }
 
   async function runCheck() {
     if (check.kind === 'checking') return
     setCheck({ kind: 'checking' })
     try {
-      await checkAnthropicKey(anthropic.apiKey)
+      const adapter = await loadAdapter(info.id)
+      await adapter.checkKey(settings.apiKey)
       setCheck({ kind: 'ok' })
     } catch (e) {
-      setCheck({ kind: 'error', error: friendlyError(e) })
+      setCheck({ kind: 'error', error: friendlyError(e, info) })
     }
   }
 
@@ -70,22 +68,22 @@ function AccountSection({ anthropic }: { anthropic: ProviderSettings }) {
     <section className={`${panel} space-y-3`}>
       <h2 className="font-semibold">Your AI account</h2>
       <p className="text-sm">
-        Connected to {provider.company} with the key ending in <code>…{anthropic.apiKey.slice(-4)}</code>. It's stored only on
-        this device.
+        Connected to <strong>{info.name}</strong> with the key ending in <code>…{settings.apiKey.slice(-4)}</code>.
+        It's stored only on this device.
       </p>
       <div className="flex flex-wrap gap-2">
         <button type="button" className={btnSecondary} onClick={runCheck} disabled={check.kind === 'checking'}>
           {check.kind === 'checking' ? 'Checking…' : 'Check key (free)'}
         </button>
         <Link to="/setup" className={btnSecondary}>
-          Replace key
+          Switch AI company or key
         </Link>
         {confirmRemove ? (
           <>
             <button
               type="button"
               className={btnDanger}
-              onClick={() => saveProviderSettings({ ...anthropic, apiKey: '' })}
+              onClick={() => saveProviderSettings({ ...settings, apiKey: '' })}
             >
               Yes, remove it from this device
             </button>
@@ -105,23 +103,24 @@ function AccountSection({ anthropic }: { anthropic: ProviderSettings }) {
   )
 }
 
-function QualitySection({ anthropic }: { anthropic: ProviderSettings }) {
-  const custom = !provider.presets.some((p) => p.model === anthropic.model)
+function QualitySection({ active }: { active: ActiveProvider }) {
+  const { info, settings } = active
+  const custom = !info.presets.some((p) => p.model === settings.model)
   return (
     <section className={`${panel} space-y-3`}>
       <h2 className="font-semibold">Quality</h2>
-      {provider.presets.map((p) => (
+      {info.presets.map((p) => (
         <label key={p.id} className="flex items-start gap-2 text-sm">
           <input
             type="radio"
             name="quality"
             className="mt-1"
-            checked={anthropic.model === p.model}
-            onChange={() => saveProviderSettings({ ...anthropic, model: p.model })}
+            checked={settings.model === p.model}
+            onChange={() => saveProviderSettings({ ...settings, model: p.model })}
           />
           <span>
             <span className="font-medium">{p.label}</span>
-            <span className={`block ${muted}`}>{p.description}</span>
+            <span className={`block ${muted}`}>{presetBlurb(info, p)}</span>
           </span>
         </label>
       ))}
@@ -130,7 +129,7 @@ function QualitySection({ anthropic }: { anthropic: ProviderSettings }) {
   )
 }
 
-function SpendingSection({ limits, spent }: { limits: Limits; spent: number }) {
+function SpendingSection({ limits, spent, active }: { limits: Limits; spent: number; active: ActiveProvider | null }) {
   const [budget, setBudget] = useState(String(limits.monthlyBudget))
   const [threshold, setThreshold] = useState(String(limits.confirmThreshold))
   const [saved, setSaved] = useState(false)
@@ -197,31 +196,34 @@ function SpendingSection({ limits, spent }: { limits: Limits; spent: number }) {
       <p className={muted}>
         StudyKey's budget only covers what you do in StudyKey on this device. For a limit that can't be exceeded, also
         set one in your AI account.{' '}
-        <a href={provider.limitsUrl} target="_blank" rel="noreferrer" className={link}>
-          Set a spending limit on your AI account ↗
-        </a>
+        {active && (
+          <a href={active.info.limitsUrl} target="_blank" rel="noreferrer" className={link}>
+            Set a spending limit with {active.info.company} ↗
+          </a>
+        )}
       </p>
     </section>
   )
 }
 
-function AdvancedModel({ anthropic }: { anthropic: ProviderSettings }) {
-  const [model, setModel] = useState(anthropic.model)
+function AdvancedModel({ active }: { active: ActiveProvider }) {
+  const { info, settings } = active
+  const [model, setModel] = useState(settings.model)
   const trimmed = model.trim()
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-medium">Model ID</h3>
       <p className={muted}>
-        The exact model name to use, as listed by your AI company. Costs can only be estimated for {Object.keys(PRICES).join(' and ')}; for
-        anything else you'll be asked to confirm each request.
+        The exact model name to use, as listed by {info.company}. Costs can only be estimated for{' '}
+        {info.presets.map((p) => p.model).join(' and ')}; for anything else you'll be asked to confirm each request.
       </p>
       <div className="flex gap-2">
         <input className={input} spellCheck={false} value={model} onChange={(e) => setModel(e.target.value)} />
         <button
           type="button"
           className={btnSecondary}
-          disabled={!trimmed || trimmed === anthropic.model}
-          onClick={() => saveProviderSettings({ ...anthropic, model: trimmed })}
+          disabled={!trimmed || trimmed === settings.model}
+          onClick={() => saveProviderSettings({ ...settings, model: trimmed })}
         >
           Save
         </button>

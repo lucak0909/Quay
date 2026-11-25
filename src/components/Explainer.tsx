@@ -1,3 +1,5 @@
+import { costRange, formatUsd, TYPICAL_SET } from '../cost/pricing'
+import { PROVIDERS } from '../providers/catalog'
 import { muted, panel } from '../ui'
 
 export function HowItWorks() {
@@ -21,9 +23,19 @@ export function HowItWorks() {
   )
 }
 
+const STUDY_MONTHS = 9
+const [cheapestSet, dearestSet] = costRange(
+  PROVIDERS.map((p) => p.presets[0].model),
+  TYPICAL_SET.inputTokens,
+  TYPICAL_SET.outputTokens,
+)
+const yearMin = cheapestSet * 10 * STUDY_MONTHS
+const yearMax = dearestSet * 120 * STUDY_MONTHS
+const roughUsd = (n: number) => (n >= 1 ? `$${Math.round(n)}` : formatUsd(n))
+
 export function CostComparison() {
   const rows = [
-    ['StudyKey (pay as you go)', 'about $2–24', 'No limit except your own budget'],
+    ['StudyKey (pay as you go)', `about ${roughUsd(yearMin)}–${roughUsd(yearMax).slice(1)}`, 'No limit except your own budget'],
     ['RemNote Pro with AI', '$240', 'Monthly AI credit cap'],
     ['Quizlet Plus', 'about $36–45', 'Limits on AI note uploads'],
   ]
@@ -48,7 +60,8 @@ export function CostComparison() {
         </tbody>
       </table>
       <p className={`${muted} mt-1 text-xs`}>
-        StudyKey range assumes 10–120 sets of notes a month for 9 study months, on the cheapest setting.
+        StudyKey range assumes 10–120 sets of notes a month for 9 study months, on the cheapest setting of each AI
+        company StudyKey supports.
       </p>
     </div>
   )

@@ -3,13 +3,16 @@ import { buildUserPrompt, SYSTEM_PROMPT } from '../cards/prompt'
 import { estimateRequest } from '../cost/estimate'
 import { formatUsd } from '../cost/pricing'
 import { SAMPLE_CARDS, SAMPLE_NOTES, SAMPLE_TITLE } from '../example/sample'
+import { PROVIDERS } from '../providers/catalog'
 import { btn, btnSecondary, muted, panel } from '../ui'
 
-const sampleCost = estimateRequest(
-  'claude-haiku-4-5',
-  SYSTEM_PROMPT + buildUserPrompt(SAMPLE_NOTES, SAMPLE_CARDS.length),
-  SAMPLE_CARDS.length,
-).typicalCost!
+const sampleCosts = PROVIDERS.map(
+  (p) =>
+    estimateRequest(p.presets[0].model, SYSTEM_PROMPT + buildUserPrompt(SAMPLE_NOTES, SAMPLE_CARDS.length), SAMPLE_CARDS.length)
+      .typicalCost,
+).filter((c): c is number => c !== null)
+const sampleMin = Math.min(...sampleCosts)
+const sampleMax = Math.max(...sampleCosts)
 
 export default function ExampleDemo() {
   return (
@@ -26,7 +29,8 @@ export default function ExampleDemo() {
 
       <p className="text-sm">
         ↓ StudyKey turned them into <strong>{SAMPLE_CARDS.length} flashcards</strong>. Making these with your
-        own key would cost about <strong>{formatUsd(sampleCost)}</strong>.
+        own key would cost between <strong>{formatUsd(sampleMin)}</strong> and{' '}
+        <strong>{formatUsd(sampleMax)}</strong>, depending on the AI company you choose.
       </p>
 
       <ReviewDemo />

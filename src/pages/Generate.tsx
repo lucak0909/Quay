@@ -9,10 +9,9 @@ import { estimateRequest } from '../cost/estimate'
 import { recordSpend, useMonthSpend } from '../cost/ledger'
 import { costUsd, formatUsd, priceFor } from '../cost/pricing'
 import { db } from '../db'
-import { generateWithAnthropic } from '../providers/anthropic'
-import { ACTIVE_PROVIDER as provider } from '../providers/catalog'
+import { loadAdapter } from '../providers'
 import { friendlyError, mayHaveBeenBilled, type FriendlyError } from '../providers/errors'
-import { saveProviderSettings, useLimits, useProviderSettings } from '../settings'
+import { saveProviderSettings, useActiveProvider, useLimits } from '../settings'
 import { btn, btnDanger, btnSecondary, input, link, muted, panel, warnBox } from '../ui'
 
 const CARD_COUNTS = [5, 10, 20, 30]
@@ -36,7 +35,7 @@ interface SavedDraft {
 type Status = { kind: 'idle' } | { kind: 'confirming' } | { kind: 'pending' } | { kind: 'error'; error: FriendlyError }
 
 export default function Generate() {
-  const providers = useProviderSettings()
+  const active = useActiveProvider()
   const limits = useLimits()
   const spent = useMonthSpend()
   const decks = useLiveQuery(() => db.decks.orderBy('updatedAt').reverse().toArray())
@@ -91,10 +90,9 @@ export default function Generate() {
     return () => window.removeEventListener('beforeunload', warn)
   }, [pending])
 
-  if (!providers || !limits || spent === undefined || !loaded) return null
+  if (active === undefined || !limits || spent === undefined || !loaded) return null
 
-  const anthropic = providers.anthropic
-  if (!anthropic.apiKey) {
+  if (active === null) {
     return (
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold">Make cards</h1>
@@ -105,7 +103,8 @@ export default function Generate() {
     )
   }
 
-  const model = anthropic.model
+  const { info: provider, settings: account } = active
+  const model = account.model
   const userPrompt = buildUserPrompt(notes, cardCount, buildGuidance(context, focus))
   const estimate = estimateRequest(model, SYSTEM_PROMPT + userPrompt, cardCount)
   const budgetStatus = checkBudget(spent, estimate.maxCost, limits.monthlyBudget)
@@ -131,8 +130,9 @@ export default function Generate() {
     setStatus({ kind: 'pending' })
     setNotices([])
     try {
-      const result = await generateWithAnthropic({
-        apiKey: anthropic.apiKey,
+      const adapter = await loadAdapter(provider.id)
+      const result = await adapter.generate({
+        apiKey: account.apiKey,
         model,
         system: SYSTEM_PROMPT,
         user: userPrompt,
@@ -142,7 +142,7 @@ export default function Generate() {
       const price = priceFor(model)
       const cost = price ? costUsd(price, result.inputTokens, result.outputTokens) : 0
       await recordSpend({
-        provider: 'anthropic',
+        provider: provider.id,
         model,
         inputTokens: result.inputTokens,
         outputTokens: result.outputTokens,
@@ -154,7 +154,7 @@ export default function Generate() {
       const parsed = parseCards(result.text)
       const next: string[] = []
       if (result.stopReason === 'refusal') next.push('The AI declined to make cards from these notes.')
-      else if (result.stopReason === 'max_tokens') next.push('The AI hit its length limit, so the last card may be missing.')
+      else if (result.stopReason === 'length') next.push('The AI hit its length limit, so the last card may be missing.')
       if (parsed.cards.length + parsed.rejected.length === 0 && result.stopReason !== 'refusal') {
         next.push('No cards came back. Try adding more detail to your notes.')
       }
@@ -169,7 +169,7 @@ export default function Generate() {
     } catch (e) {
       if (mayHaveBeenBilled(e) && estimate.maxCost !== null) {
         await recordSpend({
-          provider: 'anthropic',
+          provider: provider.id,
           model,
           inputTokens: estimate.inputTokens,
           outputTokens: estimate.maxOutputTokens,
@@ -177,7 +177,7 @@ export default function Generate() {
           estimated: true,
         })
       }
-      const error = friendlyError(e)
+      const error = friendlyError(e, provider)
       if (error.cancelled) {
         setStatus({ kind: 'idle' })
         setNotices([
@@ -337,7 +337,7 @@ export default function Generate() {
                   checked={model === p.model}
                   disabled={pending}
                   onChange={() => {
-                    saveProviderSettings({ ...anthropic, model: p.model })
+                    saveProviderSettings({ ...account, model: p.model })
                     resetConfirm()
                   }}
                 />

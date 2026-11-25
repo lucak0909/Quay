@@ -1,87 +1,109 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import ErrorMessage from '../components/ErrorMessage'
 import { WhatIsAKey } from '../components/Explainer'
-import { checkAnthropicKey } from '../providers/anthropic'
-import { ACTIVE_PROVIDER as provider, guessProvider, providerInfo } from '../providers/catalog'
+import { formatUsd, typicalSetCost } from '../cost/pricing'
+import { guessProvider, providerInfo, PROVIDERS, type ProviderInfo } from '../providers/catalog'
 import { friendlyError, type FriendlyError } from '../providers/errors'
-import { saveProviderSettings, useProviderSettings } from '../settings'
-import { btn, input, link, muted, okBox, panel, warnBox } from '../ui'
+import { loadAdapter } from '../providers'
+import { saveProviderSettings, setActiveProvider, useProviderSettings } from '../settings'
+import { btn, btnSecondary, input, link, muted, okBox, panel, warnBox } from '../ui'
+
+export default function Setup() {
+  const [params, setParams] = useSearchParams()
+  const chosen = PROVIDERS.find((p) => p.id === params.get('provider'))
+  return chosen ? (
+    <ProviderSteps key={chosen.id} provider={chosen} onChoose={(id) => setParams(id ? { provider: id } : {})} />
+  ) : (
+    <ChooseProvider onChoose={(id) => setParams({ provider: id })} />
+  )
+}
+
+function ChooseProvider({ onChoose }: { onChoose: (id: ProviderInfo['id']) => void }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Set up StudyKey</h1>
+        <p className={muted}>
+          StudyKey works with several AI companies. Pick one to connect. You can switch at any time in Settings.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {PROVIDERS.map((p) => {
+          const cost = typicalSetCost(p.presets[0].model)
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onChoose(p.id)}
+              className={`${panel} flex flex-col items-start justify-start gap-2 text-left hover:border-indigo-400 dark:hover:border-indigo-500`}
+            >
+              <span className="block font-semibold">{p.name}</span>
+              {cost !== undefined && (
+                <span className="block text-sm">About {formatUsd(cost)} for 10 pages of notes</span>
+              )}
+              {p.note && <span className={`block ${muted}`}>{p.note}</span>}
+            </button>
+          )
+        })}
+      </div>
+      <p className={muted}>Prices are for each company's cheapest setting.</p>
+      <WhatIsAKey />
+    </div>
+  )
+}
 
 type CheckState = { kind: 'idle' } | { kind: 'checking' } | { kind: 'ok' } | { kind: 'error'; error: FriendlyError }
 
-export default function Setup() {
+function ProviderSteps({
+  provider,
+  onChoose,
+}: {
+  provider: ProviderInfo
+  onChoose: (id: ProviderInfo['id'] | null) => void
+}) {
   const providers = useProviderSettings()
   const [key, setKey] = useState('')
   const [check, setCheck] = useState<CheckState>({ kind: 'idle' })
 
   const trimmed = key.trim()
   const guessed = trimmed ? guessProvider(trimmed) : undefined
-  const formatHint =
-    !trimmed || guessed === provider.id
-      ? null
-      : guessed
-        ? `This looks like a ${providerInfo(guessed).company} key. StudyKey can't use ${providerInfo(guessed).company} keys yet; ${provider.company} keys start with ${provider.keyPrefix}.`
-        : `${provider.company} keys start with ${provider.keyPrefix}. Check that you copied the whole key.`
+  const otherProvider = guessed && guessed !== provider.id ? providerInfo(guessed) : undefined
 
   async function checkAndSave() {
     if (check.kind === 'checking') return
     setCheck({ kind: 'checking' })
     try {
-      await checkAnthropicKey(trimmed)
+      const adapter = await loadAdapter(provider.id)
+      await adapter.checkKey(trimmed)
       await saveProviderSettings({
-        provider: 'anthropic',
+        provider: provider.id,
         apiKey: trimmed,
-        model: providers?.anthropic.model || provider.presets[0].model,
+        model: providers?.[provider.id].model || provider.presets[0].model,
       })
+      await setActiveProvider(provider.id)
       setCheck({ kind: 'ok' })
     } catch (e) {
-      setCheck({ kind: 'error', error: friendlyError(e) })
+      setCheck({ kind: 'error', error: friendlyError(e, provider) })
     }
   }
 
-  const steps = [
-    {
-      title: `Create a free ${provider.company} account`,
-      body: `${provider.company} makes ${provider.aiName}, the AI StudyKey will use. Sign up with your email or Google account.`,
-      href: provider.signupUrl,
-      cta: `Open ${provider.company}`,
-    },
-    {
-      title: 'Add a little credit',
-      body: 'Open Billing and buy a small amount of credit, for example $5. On the cheapest setting that covers hundreds of sets of notes. You only pay for what you use.',
-      href: provider.billingUrl,
-      cta: 'Open Billing',
-    },
-    {
-      title: 'Set a monthly spending limit (recommended)',
-      body: `Open Limits and set a monthly limit, for example $5. ${provider.company} will refuse anything past that, so you can never be charged more, even by mistake.`,
-      href: provider.limitsUrl,
-      cta: 'Open Limits',
-    },
-    {
-      title: 'Create your key',
-      body: `Open the keys page, create a new key, name it StudyKey, then copy it. It starts with ${provider.keyPrefix}. You can usually only see it once, so paste it below straight away.`,
-      href: provider.keyUrl,
-      cta: 'Open keys page',
-    },
-  ]
+  const stepNumber = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white'
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Set up StudyKey</h1>
-        <p className={muted}>
-          You'll connect StudyKey to your own AI account. It takes about 5 minutes and you only do it once.
-        </p>
+      <div className="space-y-1">
+        <button type="button" className={`${link} text-sm`} onClick={() => onChoose(null)}>
+          ← Choose a different AI company
+        </button>
+        <h1 className="text-2xl font-semibold">Connect {provider.name}</h1>
+        <p className={muted}>It takes about 5 minutes and you only do it once.</p>
       </div>
 
       <ol className="space-y-3">
-        {steps.map((s, i) => (
+        {provider.setupSteps.map((s, i) => (
           <li key={s.title} className={`${panel} flex gap-4`}>
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
-              {i + 1}
-            </span>
+            <span className={stepNumber}>{i + 1}</span>
             <div className="space-y-2">
               <h2 className="font-medium">{s.title}</h2>
               <p className="text-sm">{s.body}</p>
@@ -92,9 +114,7 @@ export default function Setup() {
           </li>
         ))}
         <li className={`${panel} flex gap-4`}>
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
-            {steps.length + 1}
-          </span>
+          <span className={stepNumber}>{provider.setupSteps.length + 1}</span>
           <div className="w-full space-y-3">
             <h2 className="font-medium">Paste your key here</h2>
             <input
@@ -109,14 +129,23 @@ export default function Setup() {
                 setCheck({ kind: 'idle' })
               }}
             />
-            {formatHint && <p className={warnBox}>{formatHint}</p>}
+            {otherProvider ? (
+              <div className={`${warnBox} space-y-2`}>
+                <p>This looks like a {otherProvider.company} key, not a {provider.company} key.</p>
+                <button type="button" className={btnSecondary} onClick={() => onChoose(otherProvider.id)}>
+                  Switch to {otherProvider.name}
+                </button>
+              </div>
+            ) : (
+              trimmed &&
+              !guessed && (
+                <p className={warnBox}>
+                  {provider.company} keys start with {provider.keyPrefix}. Check that you copied the whole key.
+                </p>
+              )
+            )}
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className={btn}
-                disabled={!trimmed || check.kind === 'checking'}
-                onClick={checkAndSave}
-              >
+              <button type="button" className={btn} disabled={!trimmed || check.kind === 'checking'} onClick={checkAndSave}>
                 {check.kind === 'checking' ? 'Checking…' : 'Check and save key'}
               </button>
               <span className={muted}>Checking your key is free.</span>
@@ -133,8 +162,6 @@ export default function Setup() {
           </div>
         </li>
       </ol>
-
-      <p className={muted}>Want to use OpenAI or Google Gemini instead? Support for those is coming soon.</p>
       <WhatIsAKey />
     </div>
   )
