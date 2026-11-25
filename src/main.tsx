@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import App from './App.tsx'
+import { openExternalLinksInBrowser } from './desktop'
 import './index.css'
 import Cram from './pages/Cram'
 import DeckView from './pages/DeckView'
@@ -29,6 +30,8 @@ const router = createBrowserRouter([
     ],
   },
 ])
+
+openExternalLinksInBrowser()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
