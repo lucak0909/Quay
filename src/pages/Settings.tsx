@@ -5,7 +5,7 @@ import { useMonthSpend } from '../cost/ledger'
 import { formatUsd } from '../cost/pricing'
 import { loadAdapter } from '../providers'
 import { friendlyError, type FriendlyError } from '../providers/errors'
-import { presetBlurb } from '../providers/presets'
+import ModelPicker from '../components/ModelPicker'
 import { saveLimits, saveProviderSettings, useActiveProvider, useLimits, type ActiveProvider, type Limits } from '../settings'
 import { btn, btnDanger, btnSecondary, input, link, muted, okBox, panel , title } from '../ui'
 
@@ -105,26 +105,15 @@ function AccountSection({ active }: { active: ActiveProvider }) {
 
 function QualitySection({ active }: { active: ActiveProvider }) {
   const { info, settings } = active
-  const custom = !info.presets.some((p) => p.model === settings.model)
   return (
     <section className={`${panel} space-y-3`}>
-      <h2 className="font-semibold">Quality</h2>
-      {info.presets.map((p) => (
-        <label key={p.id} className="flex items-start gap-2 text-sm">
-          <input
-            type="radio"
-            name="quality"
-            className="mt-1"
-            checked={settings.model === p.model}
-            onChange={() => saveProviderSettings({ ...settings, model: p.model })}
-          />
-          <span>
-            <span className="font-medium">{p.label}</span>
-            <span className={`block ${muted}`}>{presetBlurb(info, p)}</span>
-          </span>
-        </label>
-      ))}
-      {custom && <p className={muted}>You're using a custom setting from Advanced.</p>}
+      <h2 className="font-semibold">AI model</h2>
+      <ModelPicker
+        provider={info}
+        value={settings.model}
+        label={`Which ${info.aiName} model to use`}
+        onChange={(model) => saveProviderSettings({ ...settings, model })}
+      />
     </section>
   )
 }
@@ -214,8 +203,8 @@ function AdvancedModel({ active }: { active: ActiveProvider }) {
     <div className="space-y-2">
       <h3 className="text-sm font-medium">Model ID</h3>
       <p className={muted}>
-        The exact model name to use, as listed by {info.company}. Costs can only be estimated for{' '}
-        {info.presets.map((p) => p.model).join(' and ')}; for anything else you'll be asked to confirm each request.
+        For a model that isn't in the list above: its exact name as listed by {info.company}. Quay can't estimate its
+        cost, so you'll be asked to confirm each request.
       </p>
       <div className="flex gap-2">
         <input className={input} spellCheck={false} value={model} onChange={(e) => setModel(e.target.value)} />

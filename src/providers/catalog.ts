@@ -1,9 +1,10 @@
 export type ProviderId = 'anthropic' | 'openai' | 'gemini'
 
-export interface QualityPreset {
-  id: 'cheapest' | 'quality'
-  label: string
-  model: string
+export interface ModelOption {
+  id: string
+  name: string
+  // One plain sentence about when a student would pick it.
+  about: string
 }
 
 export interface SetupStep {
@@ -25,7 +26,10 @@ export interface ProviderInfo {
   // Shown when choosing a provider; plain-language facts a student should know first.
   note?: string
   setupSteps: SetupStep[]
-  presets: [QualityPreset, QualityPreset]
+  // Current models with known prices. The picker sorts them by price.
+  models: ModelOption[]
+  // The default for new accounts: cheap and good at flashcards.
+  recommended: string
 }
 
 // Alphabetical by company so no provider is presented as the default choice.
@@ -65,10 +69,13 @@ export const PROVIDERS: ProviderInfo[] = [
         cta: 'Open keys page',
       },
     ],
-    presets: [
-      { id: 'cheapest', label: 'Cheapest (recommended)', model: 'claude-haiku-4-5' },
-      { id: 'quality', label: 'Higher quality', model: 'claude-sonnet-5' },
+    models: [
+      { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', about: 'Fastest and cheapest. Handles most class notes well.' },
+      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', about: 'The previous Haiku. Haiku 5.5 is newer and much cheaper.' },
+      { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', about: 'A good balance of quality and speed. Worth it for dense or technical notes.' },
+      { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', about: 'Stronger reasoning for hard subjects like advanced maths, law or medicine. Slower.' },
     ],
+    recommended: 'claude-haiku-5-5',
   },
   {
     id: 'gemini',
@@ -100,10 +107,13 @@ export const PROVIDERS: ProviderInfo[] = [
         cta: 'Open AI Studio',
       },
     ],
-    presets: [
-      { id: 'cheapest', label: 'Cheapest (recommended)', model: 'gemini-3.5-flash-lite' },
-      { id: 'quality', label: 'Higher quality', model: 'gemini-3.8-flash' },
+    models: [
+      { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite', about: 'An older, lighter model. Fine for short, simple notes.' },
+      { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite', about: 'Cheap and capable. Handles most class notes well.' },
+      { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', about: 'Better quality for tricky or technical material.' },
+      { id: 'gemini-4-hydrogen', name: 'Gemini 4 Hydrogen', about: 'Google’s newer generation. Stronger on hard subjects.' },
     ],
+    recommended: 'gemini-3.5-flash-lite',
   },
   {
     id: 'openai',
@@ -141,10 +151,12 @@ export const PROVIDERS: ProviderInfo[] = [
         cta: 'Open keys page',
       },
     ],
-    presets: [
-      { id: 'cheapest', label: 'Cheapest (recommended)', model: 'gpt-6-luna' },
-      { id: 'quality', label: 'Higher quality', model: 'gpt-6.1-terra' },
+    models: [
+      { id: 'gpt-6-luna', name: 'GPT-6 Luna', about: 'Fastest and cheapest. Handles most class notes well.' },
+      { id: 'gpt-6.1-terra', name: 'GPT-6.1 Terra', about: 'A step up in quality for tricky material.' },
+      { id: 'gpt-6.2-sol', name: 'GPT-6.2 Sol', about: 'Higher quality again. Worth it for dense or technical notes.' },
     ],
+    recommended: 'gpt-6-luna',
   },
 ]
 
@@ -153,7 +165,7 @@ export function providerInfo(id: ProviderId): ProviderInfo {
 }
 
 export function defaultModel(id: ProviderId): string {
-  return providerInfo(id).presets[0].model
+  return providerInfo(id).recommended
 }
 
 // Returns the provider a pasted key appears to belong to, if it's recognisable.

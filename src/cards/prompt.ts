@@ -32,7 +32,21 @@ export function buildGuidance(context: string, focusIds: string[]): string {
   return [context.trim(), ...focus].filter(Boolean).join('\n')
 }
 
-export function buildUserPrompt(notes: string, cardCount: number, guidance = ''): string {
+// The student chooses how detailed the cards should be; the AI decides how many that takes.
+export function buildUserPrompt(
+  notes: string,
+  detail: { instruction: string; maxCards: number },
+  guidance = '',
+  part?: { index: number; total: number },
+): string {
   const about = guidance.trim() ? `<about_me>\n${guidance.trim()}\n</about_me>\n\n` : ''
-  return `${about}Make up to ${cardCount} flashcards from these notes.\n\n<notes>\n${notes.trim()}\n</notes>`
+  const which =
+    part && part.total > 1
+      ? `\nThese notes are part ${part.index + 1} of ${part.total} of a longer document. Make cards only from this part.`
+      : ''
+  return (
+    `${about}Make flashcards from these notes. How much to cover: ${detail.instruction}\n` +
+    `Decide how many cards that takes from how much is actually in the notes, with one fact or idea per card, ` +
+    `and never more than ${detail.maxCards}.${which}\n\n<notes>\n${notes.trim()}\n</notes>`
+  )
 }

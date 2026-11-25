@@ -1,4 +1,4 @@
-import { costUsd, priceFor } from './pricing'
+import { costUsd, priceFor, THINKING_HEADROOM_TOKENS } from './pricing'
 
 // Deliberately pessimistic so estimates err high.
 const CHARS_PER_TOKEN = 3.5
@@ -27,9 +27,12 @@ export interface RequestEstimate {
 
 export function estimateRequest(model: string, promptText: string, cardCount: number): RequestEstimate {
   const inputTokens = estimateTokens(promptText) + REQUEST_OVERHEAD_TOKENS
-  const typicalOutputTokens = OUTPUT_OVERHEAD_TOKENS + cardCount * TYPICAL_OUTPUT_TOKENS_PER_CARD
-  const maxOut = maxOutputTokens(cardCount)
   const price = priceFor(model)
+  // Thinking models are asked to think as little as possible; allow for a little in the typical case
+  // and plenty in the worst case, which is also the answer limit sent with the request.
+  const thinking = price?.thinks ? { typical: 500, max: THINKING_HEADROOM_TOKENS } : { typical: 0, max: 0 }
+  const typicalOutputTokens = OUTPUT_OVERHEAD_TOKENS + cardCount * TYPICAL_OUTPUT_TOKENS_PER_CARD + thinking.typical
+  const maxOut = maxOutputTokens(cardCount) + thinking.max
   return {
     inputTokens,
     typicalOutputTokens,

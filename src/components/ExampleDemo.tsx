@@ -1,14 +1,21 @@
 import { useState } from 'react'
+import { DEFAULT_DETAIL, DETAIL_LEVELS } from '../cards/plan'
 import { buildUserPrompt, SYSTEM_PROMPT } from '../cards/prompt'
 import { estimateRequest } from '../cost/estimate'
 import { formatUsd } from '../cost/pricing'
 import { SAMPLE_CARDS, SAMPLE_NOTES, SAMPLE_TITLE } from '../example/sample'
 import { PROVIDERS } from '../providers/catalog'
+import { cheapestModel } from '../providers/presets'
 import { btn, btnSecondary, muted, panel } from '../ui'
 
 const sampleCosts = PROVIDERS.map(
   (p) =>
-    estimateRequest(p.presets[0].model, SYSTEM_PROMPT + buildUserPrompt(SAMPLE_NOTES, SAMPLE_CARDS.length), SAMPLE_CARDS.length)
+    estimateRequest(
+      cheapestModel(p),
+      SYSTEM_PROMPT +
+        buildUserPrompt(SAMPLE_NOTES, { instruction: DETAIL_LEVELS[DEFAULT_DETAIL].instruction, maxCards: SAMPLE_CARDS.length }),
+      SAMPLE_CARDS.length,
+    )
       .typicalCost,
 ).filter((c): c is number => c !== null)
 // What the real study buttons look like for a new card (the demo only counts right and wrong).

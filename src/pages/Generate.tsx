@@ -2,8 +2,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useBlocker, useNavigate, useSearchParams } from 'react-router-dom'
 import { parseCards } from '../cards/parse'
+import { DEFAULT_DETAIL, DETAIL_LEVELS, planParts } from '../cards/plan'
 import { buildGuidance, buildUserPrompt, FOCUS_OPTIONS, MAX_CONTEXT_LENGTH, SYSTEM_PROMPT } from '../cards/prompt'
 import ErrorMessage from '../components/ErrorMessage'
+import ModelPicker from '../components/ModelPicker'
 import { checkBudget, needsExtraConfirm } from '../cost/budget'
 import { estimateRequest } from '../cost/estimate'
 import { recordSpend, useMonthSpend } from '../cost/ledger'
@@ -15,8 +17,8 @@ import { friendlyError, mayHaveBeenBilled, type FriendlyError } from '../provide
 import { saveProviderSettings, useActiveProvider, useLimits } from '../settings'
 import { btn, btnDanger, btnSecondary, input, link, muted, panel, warnBox , title } from '../ui'
 
-const CARD_COUNTS = [5, 10, 20, 30]
-const MAX_INPUT_TOKENS = 150_000
+// A sanity limit across all parts (roughly a 1,500-page book), so a mistaken paste can't run up a huge bill.
+const MAX_INPUT_TOKENS = 1_000_000
 const DRAFT_KEY = 'generateDraft'
 
 interface Draft {
@@ -31,6 +33,7 @@ interface SavedDraft {
   drafts: Draft[]
   context?: string
   focus?: string[]
+  detail?: number
 }
 
 type Status = { kind: 'idle' } | { kind: 'confirming' } | { kind: 'pending' } | { kind: 'error'; error: FriendlyError }
@@ -50,7 +53,10 @@ export default function Generate() {
   const [focus, setFocus] = useState<string[]>([])
   const [contextOpen, setContextOpen] = useState(false)
   const showContext = contextOpen || context.trim() !== '' || focus.length > 0
-  const [cardCount, setCardCount] = useState(10)
+  const [detail, setDetail] = useState(DEFAULT_DETAIL)
+  // Long notes go in parts. After a cancel or error, the next press continues from the first unfinished part.
+  const [resume, setResume] = useState<{ key: string; next: number } | null>(null)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const [overBudgetOnce, setOverBudgetOnce] = useState(false)
   const [notices, setNotices] = useState<string[]>([])
@@ -74,11 +80,13 @@ export default function Generate() {
         setFolderChoice(note.folderId ?? '')
         setContext(saved?.context ?? '')
         setFocus(saved?.focus ?? [])
+        setDetail(saved?.detail ?? DEFAULT_DETAIL)
       } else if (saved) {
         setNotes(saved.notes)
         setDrafts(saved.drafts)
         setContext(saved.context ?? '')
         setFocus(saved.focus ?? [])
+        setDetail(saved.detail ?? DEFAULT_DETAIL)
       }
       setLoaded(true)
     })
@@ -86,9 +94,9 @@ export default function Generate() {
 
   useEffect(() => {
     if (!loaded) return
-    const value: SavedDraft = { notes, drafts, context, focus }
+    const value: SavedDraft = { notes, drafts, context, focus, detail }
     db.appSettings.put({ key: DRAFT_KEY, value: JSON.stringify(value) })
-  }, [loaded, notes, drafts, context, focus])
+  }, [loaded, notes, drafts, context, focus, detail])
 
   useEffect(() => () => controller.current?.abort(), [])
 
@@ -116,14 +124,34 @@ export default function Generate() {
 
   const { info: provider, settings: account } = active
   const model = account.model
-  const userPrompt = buildUserPrompt(notes, cardCount, buildGuidance(context, focus))
-  const estimate = estimateRequest(model, SYSTEM_PROMPT + userPrompt, cardCount)
+  const level = DETAIL_LEVELS[detail]
+  const guidance = buildGuidance(context, focus)
+  const parts = planParts(notes, level)
+  // Continue where a cancelled or failed run stopped, as long as nothing has changed since.
+  const planKey = JSON.stringify([notes, detail, guidance, model])
+  const startAt = resume?.key === planKey ? resume.next : 0
+  const requests = parts.slice(startAt).map((part, k) => {
+    const index = startAt + k
+    const user = buildUserPrompt(part.text, { instruction: level.instruction, maxCards: part.maxCards }, guidance, {
+      index,
+      total: parts.length,
+    })
+    const worst = estimateRequest(model, SYSTEM_PROMPT + user, part.maxCards)
+    const typical = estimateRequest(model, SYSTEM_PROMPT + user, part.typicalCards)
+    return { index, user, inputTokens: worst.inputTokens, maxOutputTokens: worst.maxOutputTokens, worst, typical }
+  })
+  const total = (pick: (r: (typeof requests)[number]) => number | null) =>
+    requests.some((r) => pick(r) === null) ? null : requests.reduce((s, r) => s + (pick(r) ?? 0), 0)
+  const estimate = {
+    inputTokens: requests.reduce((s, r) => s + r.inputTokens, 0),
+    typicalCost: total((r) => r.typical.typicalCost),
+    maxCost: total((r) => r.worst.maxCost),
+  }
   const budgetStatus = checkBudget(spent, estimate.maxCost, limits.monthlyBudget)
   const tooLong = estimate.inputTokens > MAX_INPUT_TOKENS
   const blocked = budgetStatus === 'over' && !overBudgetOnce
   const extraConfirm = needsExtraConfirm(estimate.maxCost, limits.confirmThreshold)
-  const canSend = notes.trim().length > 0 && !tooLong && !blocked && !pending
-  const preset = provider.presets.find((p) => p.model === model)
+  const canSend = requests.length > 0 && !tooLong && !blocked && !pending
 
   function resetConfirm() {
     if (status.kind === 'confirming') setStatus({ kind: 'idle' })
@@ -140,68 +168,87 @@ export default function Generate() {
     controller.current = ac
     setStatus({ kind: 'pending' })
     setNotices([])
-    try {
-      const adapter = await loadAdapter(provider.id)
-      const result = await adapter.generate({
-        apiKey: account.apiKey,
-        model,
-        system: SYSTEM_PROMPT,
-        user: userPrompt,
-        maxTokens: estimate.maxOutputTokens,
-        signal: ac.signal,
-      })
-      const price = priceFor(model)
-      const cost = price ? costUsd(price, result.inputTokens, result.outputTokens) : 0
-      await recordSpend({
-        provider: provider.id,
-        model,
-        inputTokens: result.inputTokens,
-        outputTokens: result.outputTokens,
-        cost,
-        estimated: false,
-      })
-      setLastCost(price ? formatUsd(cost) : null)
-
-      const parsed = parseCards(result.text)
-      const next: string[] = []
-      if (result.stopReason === 'refusal') next.push('The AI declined to make cards from these notes.')
-      else if (result.stopReason === 'length') next.push('The AI hit its length limit, so the last card may be missing.')
-      if (parsed.cards.length + parsed.rejected.length === 0 && result.stopReason !== 'refusal') {
-        next.push('No cards came back. Try adding more detail to your notes.')
-      }
-      if (parsed.rejected.length > 0) next.push('Some cards came back incomplete. They are marked below so you can fix or delete them.')
-      setNotices(next)
-      setDrafts((d) => [
-        ...d,
-        ...parsed.cards.map((c) => ({ id: crypto.randomUUID(), ...c })),
-        ...parsed.rejected.map((r) => ({ id: crypto.randomUUID(), front: r.front, back: r.back, problem: r.reason })),
-      ])
-      setStatus({ kind: 'idle' })
-    } catch (e) {
-      if (mayHaveBeenBilled(e) && estimate.maxCost !== null) {
+    const price = priceFor(model)
+    const next = new Set<string>()
+    let spentNow = 0
+    let made = 0
+    // One request per part, one at a time. Each part's cards are added (and saved) as soon as it finishes,
+    // so nothing already paid for is lost if a later part fails or is cancelled.
+    for (const [k, request] of requests.entries()) {
+      setProgress({ done: request.index, total: parts.length })
+      try {
+        const adapter = await loadAdapter(provider.id)
+        const result = await adapter.generate({
+          apiKey: account.apiKey,
+          model,
+          system: SYSTEM_PROMPT,
+          user: request.user,
+          maxTokens: request.maxOutputTokens,
+          signal: ac.signal,
+        })
+        const cost = price ? costUsd(price, result.inputTokens, result.outputTokens) : 0
+        spentNow += cost
         await recordSpend({
           provider: provider.id,
           model,
-          inputTokens: estimate.inputTokens,
-          outputTokens: estimate.maxOutputTokens,
-          cost: estimate.maxCost,
-          estimated: true,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
+          cost,
+          estimated: false,
         })
-      }
-      const error = friendlyError(e, provider)
-      if (error.cancelled) {
-        setStatus({ kind: 'idle' })
-        setNotices([
-          'Cancelled. If the AI had already started, you may still be charged, so the most it could have cost has been added to this month’s total.',
+        const parsed = parseCards(result.text)
+        if (result.stopReason === 'refusal') next.add('The AI declined to make cards from some of these notes.')
+        else if (result.stopReason === 'length') next.add('The AI hit its length limit, so a card may be missing.')
+        if (parsed.rejected.length > 0) next.add('Some cards came back incomplete. They are marked below so you can fix or delete them.')
+        made += parsed.cards.length + parsed.rejected.length
+        setDrafts((d) => [
+          ...d,
+          ...parsed.cards.map((c) => ({ id: crypto.randomUUID(), ...c })),
+          ...parsed.rejected.map((r) => ({ id: crypto.randomUUID(), front: r.front, back: r.back, problem: r.reason })),
         ])
-      } else {
-        setStatus({ kind: 'error', error })
+      } catch (e) {
+        if (mayHaveBeenBilled(e) && request.worst.maxCost !== null) {
+          spentNow += request.worst.maxCost
+          await recordSpend({
+            provider: provider.id,
+            model,
+            inputTokens: request.inputTokens,
+            outputTokens: request.maxOutputTokens,
+            cost: request.worst.maxCost,
+            estimated: true,
+          })
+        }
+        const left = requests.length - k
+        if (k > 0 || startAt > 0) {
+          next.add(
+            `Stopped before part ${request.index + 1} of ${parts.length}. The cards made so far are kept below. ` +
+              `Press Continue to make the remaining ${left === 1 ? 'part' : `${left} parts`}.`,
+          )
+        }
+        setResume({ key: planKey, next: request.index })
+        const error = friendlyError(e, provider)
+        if (error.cancelled) {
+          next.add(
+            'Cancelled. If the AI had already started, you may still be charged, so the most it could have cost has been added to this month’s total.',
+          )
+          setStatus({ kind: 'idle' })
+        } else {
+          setStatus({ kind: 'error', error })
+        }
+        break
       }
-    } finally {
-      inFlight.current = false
-      controller.current = null
-      setOverBudgetOnce(false)
+      if (k === requests.length - 1) {
+        setResume(null)
+        setStatus({ kind: 'idle' })
+        if (made === 0 && !next.size) next.add('No cards came back. Try adding more detail to your notes.')
+      }
     }
+    setNotices([...next])
+    setLastCost(price ? formatUsd(spentNow) : null)
+    setProgress(null)
+    inFlight.current = false
+    controller.current = null
+    setOverBudgetOnce(false)
   }
 
   function updateDraft(id: string, patch: Partial<Draft>) {
@@ -319,45 +366,44 @@ export default function Generate() {
         </div>
         )}
 
-        <div className="flex flex-wrap gap-6">
-          <label className="space-y-1">
-            <span className="block text-sm font-medium">How many cards?</span>
-            <select
-              className={input}
-              value={cardCount}
+        <div className="space-y-5">
+          <label className="block space-y-1.5">
+            <span className="flex items-baseline justify-between text-sm font-medium">
+              Detail
+              <span className="text-indigo-600 dark:text-indigo-300">{level.label}</span>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={DETAIL_LEVELS.length - 1}
+              step={1}
+              value={detail}
               disabled={pending}
+              aria-valuetext={level.label}
               onChange={(e) => {
-                setCardCount(Number(e.target.value))
+                setDetail(Number(e.target.value))
                 resetConfirm()
               }}
-            >
-              {CARD_COUNTS.map((n) => (
-                <option key={n} value={n}>
-                  Up to {n}
-                </option>
-              ))}
-            </select>
+              className="w-full cursor-pointer rounded-full focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/30"
+            />
+            <span className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>{DETAIL_LEVELS[0].label}</span>
+              <span>{DETAIL_LEVELS[DETAIL_LEVELS.length - 1].label}</span>
+            </span>
+            <span className={`block ${muted}`}>{level.instruction} The AI decides how many cards that takes.</span>
           </label>
 
-          <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">Quality</legend>
-            {provider.presets.map((p) => (
-              <label key={p.id} className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="quality"
-                  checked={model === p.model}
-                  disabled={pending}
-                  onChange={() => {
-                    saveProviderSettings({ ...account, model: p.model })
-                    resetConfirm()
-                  }}
-                />
-                {p.label}
-              </label>
-            ))}
-            {!preset && <p className={muted}>Custom setting (see Advanced in Settings)</p>}
-          </fieldset>
+          <div>
+            <ModelPicker
+              provider={provider}
+              value={model}
+              disabled={pending}
+              onChange={(m) => {
+                saveProviderSettings({ ...account, model: m })
+                resetConfirm()
+              }}
+            />
+          </div>
         </div>
 
         <div className="space-y-2 glass-inset rounded-2xl p-3.5 text-sm">
@@ -375,7 +421,13 @@ export default function Generate() {
               Change
             </Link>
           </p>
-          {tooLong && <p className={warnBox}>These notes are too long to send in one go. Split them into smaller parts.</p>}
+          {parts.length > 1 && (
+            <p className={muted}>
+              These notes are long, so they'll be sent in {parts.length} parts, one after another
+              {startAt === 1 ? '. Part 1 is already done.' : startAt > 1 ? `. Parts 1–${startAt} are already done.` : '.'}
+            </p>
+          )}
+          {tooLong && <p className={warnBox}>These notes are too long. Split them up and make cards from one part at a time.</p>}
           {budgetStatus === 'warn' && <p className={warnBox}>This would bring you close to your monthly budget.</p>}
           {budgetStatus === 'over' && (
             <div className={warnBox}>
@@ -405,15 +457,30 @@ export default function Generate() {
             </div>
           </div>
         ) : pending ? (
-          <div className="flex items-center gap-3">
-            <span className="text-sm">Writing your cards… this usually takes 10–30 seconds.</span>
-            <button type="button" className={btnSecondary} onClick={() => controller.current?.abort()}>
-              Cancel
-            </button>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <span className="text-sm">
+                {progress && progress.total > 1
+                  ? `Writing your cards… part ${progress.done + 1} of ${progress.total}.`
+                  : 'Writing your cards… this usually takes 10–30 seconds.'}
+              </span>
+              <button type="button" className={btnSecondary} onClick={() => controller.current?.abort()}>
+                Cancel
+              </button>
+            </div>
+            {progress && progress.total > 1 && (
+              <div className="h-1.5 overflow-hidden rounded-full bg-black/[.06] dark:bg-white/10">
+                <div className="h-full bg-indigo-500 transition-all" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
+              </div>
+            )}
           </div>
         ) : (
           <button type="button" className={btn} onClick={generate} disabled={!canSend}>
-            {drafts.length > 0 ? 'Make more cards' : 'Make cards'}
+            {startAt > 0
+              ? `Continue (parts ${startAt + 1}–${parts.length})`
+              : drafts.length > 0
+                ? 'Make more cards'
+                : 'Make cards'}
           </button>
         )}
 

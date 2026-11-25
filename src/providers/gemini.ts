@@ -28,8 +28,8 @@ export const geminiAdapter: ProviderAdapter = {
   },
 
   async generate(req) {
-    try {
-      const response = await new GoogleGenAI({ apiKey: req.apiKey }).models.generateContent({
+    const send = (minimalThinking: boolean) =>
+      new GoogleGenAI({ apiKey: req.apiKey }).models.generateContent({
         model: req.model,
         contents: req.user,
         config: {
@@ -38,9 +38,15 @@ export const geminiAdapter: ProviderAdapter = {
           responseMimeType: 'application/json',
           responseJsonSchema: CARDS_JSON_SCHEMA,
           // Thinking is billed as output; flashcards need very little of it.
-          thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+          ...(minimalThinking ? { thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL } } : {}),
           abortSignal: req.signal,
         },
+      })
+    try {
+      const response = await send(true).catch((e) => {
+        // Some models don't accept this thinking level; that's rejected with an unbilled 400, so retry once without it.
+        if (e instanceof ApiError && e.status === 400 && /thinking/i.test(e.message)) return send(false)
+        throw e
       })
       const usage = response.usageMetadata
       const finish = response.candidates?.[0]?.finishReason

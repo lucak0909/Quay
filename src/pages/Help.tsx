@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 import { HowItWorks, WhatIsAKey } from '../components/Explainer'
 import { formatUsd, typicalSetCost } from '../cost/pricing'
 import { PROVIDERS } from '../providers/catalog'
+import { cheapestModel } from '../providers/presets'
 import { useActiveProvider, type ActiveProvider } from '../settings'
 import { link, panel , title } from '../ui'
 
-const cheapestCosts = PROVIDERS.map((p) => typicalSetCost(p.presets[0].model)).filter((c): c is number => c !== undefined)
+const cheapestCosts = PROVIDERS.map((p) => typicalSetCost(cheapestModel(p))).filter((c): c is number => c !== undefined)
 const cheapestRange = `from about ${formatUsd(Math.min(...cheapestCosts))} to ${formatUsd(Math.max(...cheapestCosts))}`
 
 // Links to the connected AI company's page, or to setup if none is connected yet.
