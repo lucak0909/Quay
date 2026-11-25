@@ -31,14 +31,14 @@ export default function Menu({ label, items, extra }: { label: string; items: Me
         aria-label={label}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="rounded-md px-2 py-1 text-lg leading-none text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none text-slate-500 transition hover:bg-white/70 hover:text-slate-800 dark:hover:bg-white/10 dark:hover:text-white"
       >
         ⋯
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-20 mt-1 w-52 rounded-md border border-slate-200 bg-white py-1 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          className="glass-thick absolute right-0 z-20 mt-1.5 w-56 rounded-2xl p-1.5 text-sm"
         >
           {extra?.(close)}
           {items.map((item) => (
@@ -50,7 +50,7 @@ export default function Menu({ label, items, extra }: { label: string; items: Me
                 close()
                 item.onSelect()
               }}
-              className={`block w-full px-3 py-1.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${item.danger ? 'text-red-700 dark:text-red-300' : ''}`}
+              className={`block w-full rounded-xl px-3 py-2 text-left hover:bg-black/[.05] dark:hover:bg-white/10 ${item.danger ? 'text-red-600 dark:text-red-300' : ''}`}
             >
               {item.label}
             </button>

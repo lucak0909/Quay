@@ -104,6 +104,7 @@ function NoteView({ note }: { note: NoteRow }) {
         </div>
       </div>
 
+      <div className="glass space-y-4 rounded-[32px] px-6 py-7 sm:px-10 sm:py-9">
       <input
         aria-label="Title"
         placeholder="Untitled note"
@@ -121,10 +122,10 @@ function NoteView({ note }: { note: NoteRow }) {
           setName(e.target.value)
           queue({ name: e.target.value.trim() })
         }}
-        className="w-full bg-transparent text-3xl font-semibold outline-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
+        className="w-full bg-transparent text-3xl font-bold tracking-tight outline-none placeholder:text-slate-400/70 dark:placeholder:text-slate-500"
       />
-
       <NoteEditor content={note.content} onChange={onEditorChange} />
+      </div>
 
       {confirmDelete && (
         <Dialog title={`Delete "${name.trim() || 'Untitled note'}"?`} onClose={() => setConfirmDelete(false)}>

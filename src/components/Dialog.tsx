@@ -14,9 +14,9 @@ export default function Dialog({ title, onClose, children }: { title: string; on
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-lg border border-slate-200 bg-white p-0 text-slate-900 shadow-xl backdrop:bg-slate-900/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+      className="glass-thick m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[28px] p-0 text-slate-900 backdrop:bg-slate-900/20 backdrop:backdrop-blur-[3px] dark:text-slate-100"
     >
-      <div className="space-y-4 p-5">
+      <div className="space-y-4 p-6">
         <h2 className="text-lg font-semibold">{title}</h2>
         {children}
       </div>

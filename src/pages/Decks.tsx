@@ -20,7 +20,7 @@ import { colorInfo, COLOR_IDS, FOLDER_COLORS } from '../folders/colors'
 import { canMoveFolder, childFolders, decksIn, flattenTree, folderPath, folderTotals, parentIn, subtreeIds } from '../folders/tree'
 import { totalDue } from '../srs/queue'
 import { useDeckSummaries, type DeckSummary } from '../srs/store'
-import { btn, btnDanger, btnSecondary, input, link, muted, panel } from '../ui'
+import { btn, btnDanger, btnSecondary, input, link, muted, panel , title } from '../ui'
 
 type Item = { kind: 'deck' | 'folder' | 'note'; id: string; name: string }
 type Pending =
@@ -32,8 +32,8 @@ type Pending =
 const noteName = (note: { name: string }) => note.name || 'Untitled note'
 
 const OPEN_KEY = 'quay:openFolders'
-const smallBtn = btn.replace('px-4 py-2', 'px-3 py-1')
-const row = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+const smallBtn = btn.replace('px-5 py-2.5', 'px-3.5 py-1.5')
+const row = 'group flex items-center gap-2 rounded-2xl px-2.5 py-2 transition hover:bg-white/60 dark:hover:bg-white/[.06]'
 
 export default function Decks() {
   const decks = useDeckSummaries()
@@ -158,7 +158,7 @@ function Library({ decks, folders, notes }: { decks: DeckSummary[]; folders: Fol
               <div
                 {...dragProps(item)}
                 {...dropProps(folder.id, folder.id)}
-                className={`${row} ${dropTarget === folder.id ? 'bg-indigo-50 ring-2 ring-indigo-400 dark:bg-indigo-950' : ''} ${focus === folder.id ? 'bg-slate-50 dark:bg-slate-800/60' : ''}`}
+                className={`${row} ${dropTarget === folder.id ? 'bg-indigo-500/10 ring-2 ring-indigo-400/70' : ''} ${focus === folder.id ? 'bg-white/60 dark:bg-white/[.06]' : ''}`}
               >
                 <button
                   type="button"
@@ -203,7 +203,7 @@ function Library({ decks, folders, notes }: { decks: DeckSummary[]; folders: Fol
                 <Menu
                   label={`Options for ${folder.name}`}
                   extra={(close) => (
-                    <div className="flex flex-wrap gap-1.5 border-b border-slate-200 px-3 pb-2 pt-1 dark:border-slate-700">
+                    <div className="flex flex-wrap gap-1.5 border-b border-black/[.06] px-3 pb-2 pt-1 dark:border-white/10">
                       {COLOR_IDS.map((c) => (
                         <button
                           key={c}
@@ -229,7 +229,7 @@ function Library({ decks, folders, notes }: { decks: DeckSummary[]; folders: Fol
                   ]}
                 />
               </div>
-              {isOpen && <div className="ml-4 border-l border-slate-200 pl-2 dark:border-slate-700">{renderLevel(folder.id)}</div>}
+              {isOpen && <div className="ml-4 border-l border-black/[.08] pl-2 dark:border-white/10">{renderLevel(folder.id)}</div>}
             </li>
           )
         })}
@@ -306,7 +306,7 @@ function Library({ decks, folders, notes }: { decks: DeckSummary[]; folders: Fol
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Library</h1>
+        <h1 className={title}>Library</h1>
         <div className="flex flex-wrap gap-2">
           <button type="button" className={btnSecondary} onClick={() => newNote()}>
             New note
@@ -342,7 +342,7 @@ function Library({ decks, folders, notes }: { decks: DeckSummary[]; folders: Fol
           {dragging && locationOf(dragging) !== undefined && (
             <div
               {...dropProps(undefined, 'top')}
-              className={`rounded-md border-2 border-dashed px-3 py-2 text-center text-sm ${dropTarget === 'top' ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-950' : 'border-slate-300 text-slate-500 dark:border-slate-700'}`}
+              className={`rounded-2xl border-2 border-dashed px-3 py-2.5 text-center text-sm ${dropTarget === 'top' ? 'border-indigo-400 bg-indigo-500/10' : 'border-slate-400/40 text-slate-500 dark:border-white/15'}`}
             >
               Drop here to move to the top level
             </div>
@@ -441,7 +441,7 @@ function NameInput({ initial, onDone }: { initial: string; onDone: (name: string
         if (e.key === 'Escape') finish(null)
       }}
       onBlur={(e) => finish(e.currentTarget.value.trim() || null)}
-      className="min-w-0 flex-1 rounded border border-indigo-400 bg-white px-2 py-0.5 text-sm dark:bg-slate-900"
+      className="min-w-0 flex-1 rounded-lg border border-indigo-300 bg-white/80 px-2 py-0.5 text-sm outline-none ring-4 ring-indigo-400/20 dark:bg-white/10"
     />
   )
 }
@@ -460,7 +460,7 @@ function MoveDialog({
   onClose: () => void
 }) {
   const options = flattenTree(folders, item.kind === 'folder' ? new Set([item.id]) : new Set())
-  const option = 'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-100 disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent dark:hover:bg-slate-800'
+  const option = 'flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-sm hover:bg-black/[.05] disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent dark:hover:bg-white/10'
   return (
     <Dialog title={`Move "${item.name}" to…`} onClose={onClose}>
       <div className="max-h-80 overflow-y-auto">

@@ -7,7 +7,7 @@ import { guessProvider, providerInfo, PROVIDERS, type ProviderInfo } from '../pr
 import { friendlyError, type FriendlyError } from '../providers/errors'
 import { loadAdapter } from '../providers'
 import { saveProviderSettings, setActiveProvider, useProviderSettings } from '../settings'
-import { btn, btnSecondary, input, link, muted, okBox, panel, warnBox } from '../ui'
+import { btn, btnSecondary, input, link, muted, okBox, panel, warnBox , title } from '../ui'
 
 export default function Setup() {
   const [params, setParams] = useSearchParams()
@@ -23,7 +23,7 @@ function ChooseProvider({ onChoose }: { onChoose: (id: ProviderInfo['id']) => vo
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Set up Quay</h1>
+        <h1 className={title}>Set up Quay</h1>
         <p className={muted}>
           Quay works with several AI companies. Pick one to connect. You can switch at any time in Settings.
         </p>
@@ -96,7 +96,7 @@ function ProviderSteps({
         <button type="button" className={`${link} text-sm`} onClick={() => onChoose(null)}>
           ← Choose a different AI company
         </button>
-        <h1 className="text-2xl font-semibold">Connect {provider.name}</h1>
+        <h1 className={title}>Connect {provider.name}</h1>
         <p className={muted}>It takes about 5 minutes and you only do it once.</p>
       </div>
 

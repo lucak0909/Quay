@@ -28,10 +28,10 @@ export default function StudyCardView({ front, back, revealed, onReveal, onAnswe
 
   return (
     <div className="space-y-4">
-      <div className="min-h-48 space-y-4 rounded-lg border border-slate-200 bg-white p-6 text-lg dark:border-slate-700 dark:bg-slate-900">
+      <div className="glass min-h-56 space-y-4 rounded-[32px] p-8 text-xl leading-relaxed">
         <p className="whitespace-pre-wrap font-medium">{front}</p>
         {revealed && (
-          <p className="whitespace-pre-wrap border-t border-slate-200 pt-4 dark:border-slate-700">{back}</p>
+          <p className="whitespace-pre-wrap border-t border-black/[.06] pt-4 dark:border-white/10">{back}</p>
         )}
       </div>
       {revealed ? (

@@ -5,7 +5,7 @@ import { folderPath } from '../folders/tree'
 import { countDue, DEFAULT_LIMITS, endOfDay, readiness, startOfDay, totalDue } from '../srs/queue'
 import { pullForwardForTest } from '../srs/scheduler'
 import { doneToday, toStudyCard } from '../srs/store'
-import { btn, btnDanger, btnSecondary, input, link, muted, panel } from '../ui'
+import { btn, btnDanger, btnSecondary, input, link, muted, panel , title } from '../ui'
 
 function setTestDate(deckId: string, testDate: number) {
   const now = Date.now()
@@ -80,7 +80,7 @@ export default function DeckView() {
             </span>
           ))}
         </nav>
-        <h1 className="text-2xl font-semibold">{deck.name}</h1>
+        <h1 className={title}>{deck.name}</h1>
         <p className={muted}>{cards.length} cards</p>
       </div>
 
@@ -100,7 +100,7 @@ export default function DeckView() {
             </Link>
           </div>
 
-          <div className="space-y-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+          <div className="space-y-2 border-t border-black/[.06] pt-4 dark:border-white/10">
             <label className="flex flex-wrap items-center gap-3 text-sm">
               <span>When's your test?</span>
               <input
@@ -127,7 +127,7 @@ export default function DeckView() {
                   {new Date(deck.testDate!).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}:{' '}
                   <strong>{ready}%</strong>
                 </p>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                <div className="h-2 overflow-hidden rounded-full bg-black/[.06] dark:bg-white/10">
                   <div className="h-full bg-green-600" style={{ width: `${ready}%` }} />
                 </div>
                 <p className={muted}>Every card will come up again before your test.</p>

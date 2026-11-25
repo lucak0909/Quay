@@ -7,7 +7,7 @@ import { loadAdapter } from '../providers'
 import { friendlyError, type FriendlyError } from '../providers/errors'
 import { presetBlurb } from '../providers/presets'
 import { saveLimits, saveProviderSettings, useActiveProvider, useLimits, type ActiveProvider, type Limits } from '../settings'
-import { btn, btnDanger, btnSecondary, input, link, muted, okBox, panel } from '../ui'
+import { btn, btnDanger, btnSecondary, input, link, muted, okBox, panel , title } from '../ui'
 
 export default function Settings() {
   const active = useActiveProvider()
@@ -17,7 +17,7 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Settings</h1>
+      <h1 className={title}>Settings</h1>
       {active ? (
         <>
           <AccountSection key={active.info.id} active={active} />

@@ -6,7 +6,7 @@ import { db } from '../db'
 import { totalDue } from '../srs/queue'
 import { useDeckSummaries } from '../srs/store'
 import { useActiveProvider } from '../settings'
-import { btn, btnSecondary, link, muted, panel } from '../ui'
+import { btn, btnSecondary, link, muted, panel , title } from '../ui'
 
 export default function Home() {
   const active = useActiveProvider()
@@ -19,7 +19,7 @@ function Welcome() {
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <h1 className="text-3xl font-semibold">Turn your notes into flashcards for a few cents</h1>
+        <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">Turn your notes into flashcards for a few cents</h1>
         <p className="text-slate-600 dark:text-slate-400">
           Paste your class notes and Quay's AI writes the flashcards for you. No subscription: you pay the AI
           company directly for what you use.
@@ -54,7 +54,7 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold">Welcome back</h1>
+        <h1 className={title}>Welcome back</h1>
         <p className="text-slate-600 dark:text-slate-400">
           {dueTotal > 0
             ? `You have ${dueTotal} ${dueTotal === 1 ? 'card' : 'cards'} to study today.`

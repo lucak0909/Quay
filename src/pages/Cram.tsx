@@ -4,7 +4,7 @@ import StudyCardView from '../components/StudyCardView'
 import { db, type Card, type Deck } from '../db'
 import { answerCram, cramMastered, startCram, type CramSession } from '../srs/cram'
 import { newState } from '../srs/scheduler'
-import { btn, btnSecondary, muted } from '../ui'
+import { btn, btnSecondary, muted , title } from '../ui'
 
 export default function Cram() {
   const { id = '' } = useParams()
@@ -60,7 +60,7 @@ export default function Cram() {
   if (!current) {
     return (
       <div className="mx-auto max-w-xl space-y-4 text-center">
-        <h1 className="text-2xl font-semibold">{session.total === 0 ? 'This deck is empty' : 'Deck crammed!'}</h1>
+        <h1 className={title}>{session.total === 0 ? 'This deck is empty' : 'Deck crammed!'}</h1>
         {session.total > 0 && (
           <p>You got every card right twice in a row. Do it again tomorrow to make it stick.</p>
         )}
@@ -95,7 +95,7 @@ export default function Cram() {
           Cramming: {mastered} of {session.total} done
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+      <div className="h-1.5 overflow-hidden rounded-full bg-black/[.06] dark:bg-white/10">
         <div className="h-full bg-indigo-600 transition-all" style={{ width: `${(mastered / session.total) * 100}%` }} />
       </div>
       <StudyCardView
