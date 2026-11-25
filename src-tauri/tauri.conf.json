@@ -1,0 +1,52 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "StudyKey",
+  "version": "0.1.0",
+  "identifier": "io.github.lucak0909.studykey",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev -- --port 5173 --strictPort",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "StudyKey",
+        "width": 1200,
+        "height": 820,
+        "minWidth": 420,
+        "minHeight": 560,
+        "center": true,
+        "resizable": true,
+        "dragDropEnabled": false
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: blob:",
+        "font-src": "'self' data:",
+        "connect-src": "'self' ipc: http://ipc.localhost https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com"
+      },
+      "devCsp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "shortDescription": "Notes and flashcards with your own AI key",
+    "longDescription": "StudyKey turns your notes into flashcards and quizzes using your own AI account, so you pay the AI company directly with no subscription markup, then helps you study them with spaced repetition.",
+    "category": "Education",
+    "copyright": "StudyKey contributors. Licensed under AGPL-3.0-or-later.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

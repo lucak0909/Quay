@@ -26,7 +26,20 @@ Early development. See the implementation plan for the current roadmap.
 
 ## Stack
 
-Vite + React + TypeScript + Tailwind, IndexedDB for local storage (via Dexie.js), `pdf.js` for client-side PDF parsing. No backend, except a minimal stateless proxy function required for providers (OpenAI, Gemini) that block direct browser calls.
+A desktop app built with Tauri around a Vite + React + TypeScript + Tailwind interface. Everything is stored on your computer (IndexedDB via Dexie.js), and your key is only ever sent straight to the AI company. There is no StudyKey server, database or account.
+
+## Running it from source
+
+You need Node.js, Rust (via rustup) and, on Windows, the Visual Studio C++ Build Tools.
+
+```sh
+npm install
+npm run desktop        # open the desktop app with live reload
+npm run desktop:build  # build an installer
+npm run dev            # or just run the interface in a browser
+```
+
+On Windows, Defender sometimes wrongly flags temporary files made during the Rust build. If the build fails with "contains a virus", exclude the `src-tauri/target` folder.
 
 ## License
 

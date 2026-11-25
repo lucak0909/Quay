@@ -1,5 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { ProviderId } from './providers/catalog'
+import type { FolderColor } from './folders/colors'
+import type { Grade, Phase, SrsState } from './srs/scheduler'
 
 export interface ProviderSettings {
   provider: ProviderId
@@ -17,6 +19,20 @@ export interface Deck {
   name: string
   createdAt: number
   updatedAt: number
+  // End of the day of the student's test, if they've set one.
+  testDate?: number
+  // Missing for decks at the top level.
+  folderId?: string
+}
+
+export interface Folder {
+  id: string
+  name: string
+  color: FolderColor
+  // Missing for folders at the top level.
+  parentId?: string
+  createdAt: number
+  updatedAt: number
 }
 
 export interface Card {
@@ -26,6 +42,18 @@ export interface Card {
   back: string
   createdAt: number
   updatedAt: number
+  // Missing until the card is first studied.
+  srs?: SrsState
+}
+
+export interface ReviewLog {
+  id?: number
+  cardId: string
+  deckId: string
+  at: number
+  grade: Grade
+  mode: 'learn' | 'cram'
+  prevPhase: Phase
 }
 
 export interface SpendEntry {
@@ -47,6 +75,8 @@ export const db = new Dexie('studykey') as Dexie & {
   decks: EntityTable<Deck, 'id'>
   cards: EntityTable<Card, 'id'>
   spend: EntityTable<SpendEntry, 'id'>
+  reviews: EntityTable<ReviewLog, 'id'>
+  folders: EntityTable<Folder, 'id'>
 }
 
 db.version(1).stores({
@@ -69,3 +99,12 @@ db.version(2)
         if (p.model === 'claude-haiku-4-5-20251001') p.model = 'claude-haiku-4-5'
       }),
   )
+
+db.version(3).stores({
+  reviews: '++id, deckId, at',
+})
+
+db.version(4).stores({
+  decks: 'id, updatedAt, folderId',
+  folders: 'id, parentId',
+})
