@@ -30,4 +30,4 @@ Vite + React + TypeScript + Tailwind, IndexedDB for local storage (via Dexie.js)
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later) — see [LICENSE](./LICENSE). You can use, change and share StudyKey freely; if you distribute a modified version or run it as a service for others, you must share your source code under the same licence.
