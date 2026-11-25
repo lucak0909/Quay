@@ -11,6 +11,13 @@ const sampleCosts = PROVIDERS.map(
     estimateRequest(p.presets[0].model, SYSTEM_PROMPT + buildUserPrompt(SAMPLE_NOTES, SAMPLE_CARDS.length), SAMPLE_CARDS.length)
       .typicalCost,
 ).filter((c): c is number => c !== null)
+// What the real study buttons look like for a new card (the demo only counts right and wrong).
+const DEMO_ANSWERS = [
+  { label: 'Again', hint: '1m', color: 'text-red-600 dark:text-red-300', gotIt: false },
+  { label: 'Hard', hint: '6m', color: 'text-amber-600 dark:text-amber-300', gotIt: true },
+  { label: 'Good', hint: '10m', color: 'text-emerald-600 dark:text-emerald-300', gotIt: true },
+  { label: 'Easy', hint: '4d', color: 'text-sky-600 dark:text-sky-300', gotIt: true },
+]
 const sampleMin = Math.min(...sampleCosts)
 const sampleMax = Math.max(...sampleCosts)
 
@@ -82,13 +89,13 @@ function ReviewDemo() {
         {revealed && <p className="border-t border-black/[.06] pt-3 dark:border-white/10">{card.back}</p>}
       </div>
       {revealed ? (
-        <div className="flex gap-2">
-          <button type="button" className={btnSecondary} onClick={() => grade(false)}>
-            Forgot
-          </button>
-          <button type="button" className={btn} onClick={() => grade(true)}>
-            Got it
-          </button>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {DEMO_ANSWERS.map((a) => (
+            <button key={a.label} type="button" className={`${btnSecondary} flex-col gap-0`} onClick={() => grade(a.gotIt)}>
+              <span className={`font-semibold ${a.color}`}>{a.label}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{a.hint}</span>
+            </button>
+          ))}
         </div>
       ) : (
         <button type="button" className={btn} onClick={() => setRevealed(true)}>

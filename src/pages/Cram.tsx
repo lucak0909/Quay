@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import StudyCardView from '../components/StudyCardView'
+import StudyCardView, { type Answer } from '../components/StudyCardView'
 import { db, type Card, type Deck } from '../db'
 import { answerCram, cramMastered, startCram, type CramSession } from '../srs/cram'
 import { newState } from '../srs/scheduler'
 import { btn, btnSecondary, muted , title } from '../ui'
+
+// Cramming is pass or fail: a missed card comes back soon, a right one counts towards mastering it.
+const CRAM_ANSWERS: Answer[] = [
+  { label: 'Missed it', hint: 'again soon', tone: 'red' },
+  { label: 'Got it', hint: 'counts towards done', tone: 'green' },
+]
 
 export default function Cram() {
   const { id = '' } = useParams()
@@ -24,8 +30,9 @@ export default function Cram() {
   }, [id])
 
   const answer = useCallback(
-    (gotIt: boolean) => {
+    (index: number) => {
       if (!session || session.queue.length === 0) return
+      const gotIt = index === 1
       const card = cards.get(session.queue[0])!
       // Logged for streaks and stats; cramming never changes the long-term schedule.
       db.reviews.add({
@@ -104,7 +111,9 @@ export default function Cram() {
         back={current.back}
         revealed={revealed}
         onReveal={reveal}
+        answers={CRAM_ANSWERS}
         onAnswer={answer}
+        spaceAnswer={1}
       />
       <p className={`${muted} text-center`}>Cramming doesn't change when cards come up in your normal reviews.</p>
     </div>

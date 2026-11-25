@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { answerCram, cramMastered, startCram } from './cram'
+import { formatInterval } from './format'
 import { countDue, endOfDay, nextCard, readiness, totalDue, type StudyCard } from './queue'
 import { DAY, DEFAULT_PARAMS, MINUTE, newState, pullForwardForTest, schedule, SIMPLE_GRADES, type SrsState } from './scheduler'
 
@@ -204,5 +205,24 @@ describe('cram mode', () => {
 
   it('includes every card exactly once at the start', () => {
     expect([...startCram(ids).queue].sort()).toEqual(ids)
+  })
+})
+
+describe('answer button labels', () => {
+  it('formats when a card comes back', () => {
+    expect(formatInterval(30_000)).toBe('<1m')
+    expect(formatInterval(10 * MINUTE)).toBe('10m')
+    expect(formatInterval(3 * 60 * MINUTE)).toBe('3h')
+    expect(formatInterval(DAY)).toBe('1d')
+    expect(formatInterval(12 * DAY)).toBe('12d')
+    expect(formatInterval(65 * DAY)).toBe('2mo')
+    expect(formatInterval(550 * DAY)).toBe('1.5y')
+  })
+
+  it('gives four different gaps for a card in review, shortest to longest', () => {
+    const state = review(10)
+    const gaps = (['again', 'hard', 'good', 'easy'] as const).map((g) => schedule(state, g, NOW).due - NOW)
+    expect(gaps).toEqual([...gaps].sort((a, b) => a - b))
+    expect(new Set(gaps.map(formatInterval)).size).toBe(4)
   })
 })
