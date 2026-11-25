@@ -48,7 +48,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="scroll-edge-top sticky top-0 z-30 px-3 pt-3">
-        <nav className="glass mx-auto flex max-w-4xl items-center gap-1 rounded-full py-1.5 pl-2 pr-1.5">
+        <nav className="glass glass-blur mx-auto flex max-w-4xl items-center gap-1 rounded-full py-1.5 pl-2 pr-1.5">
           <Link to="/" className="mr-2 flex items-center gap-2 rounded-full py-1 pl-1 pr-2 text-[15px] font-bold tracking-tight">
             <img src="/favicon.svg" alt="" className="h-7 w-7 drop-shadow-sm" />
             Quay
@@ -89,7 +89,7 @@ export default function App() {
 
       {/* Phones: a floating tab bar at the bottom, like iOS. */}
       <div className="scroll-edge-bottom fixed inset-x-0 bottom-0 z-30 px-3 pb-3 sm:hidden">
-      <nav className="glass no-scrollbar flex justify-between gap-1 overflow-x-auto rounded-full p-1.5">
+      <nav className="glass glass-blur no-scrollbar flex justify-between gap-1 overflow-x-auto rounded-full p-1.5">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
