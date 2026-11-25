@@ -1,5 +1,6 @@
 import { costRange, formatUsd, TYPICAL_SET } from '../cost/pricing'
 import { PROVIDERS } from '../providers/catalog'
+import { cheapestModel } from '../providers/presets'
 import { muted, panel } from '../ui'
 
 export function HowItWorks() {
@@ -25,7 +26,7 @@ export function HowItWorks() {
 
 const STUDY_MONTHS = 9
 const [cheapestSet, dearestSet] = costRange(
-  PROVIDERS.map((p) => p.presets[0].model),
+  PROVIDERS.map(cheapestModel),
   TYPICAL_SET.inputTokens,
   TYPICAL_SET.outputTokens,
 )

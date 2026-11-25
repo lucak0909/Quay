@@ -4,6 +4,7 @@ import ErrorMessage from '../components/ErrorMessage'
 import { WhatIsAKey } from '../components/Explainer'
 import { formatUsd, typicalSetCost } from '../cost/pricing'
 import { guessProvider, providerInfo, PROVIDERS, type ProviderInfo } from '../providers/catalog'
+import { cheapestModel } from '../providers/presets'
 import { friendlyError, type FriendlyError } from '../providers/errors'
 import { loadAdapter } from '../providers'
 import { saveProviderSettings, setActiveProvider, useProviderSettings } from '../settings'
@@ -30,7 +31,7 @@ function ChooseProvider({ onChoose }: { onChoose: (id: ProviderInfo['id']) => vo
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         {PROVIDERS.map((p) => {
-          const cost = typicalSetCost(p.presets[0].model)
+          const cost = typicalSetCost(cheapestModel(p))
           return (
             <button
               key={p.id}
@@ -79,7 +80,7 @@ function ProviderSteps({
       await saveProviderSettings({
         provider: provider.id,
         apiKey: trimmed,
-        model: providers?.[provider.id].model || provider.presets[0].model,
+        model: providers?.[provider.id].model || provider.recommended,
       })
       await setActiveProvider(provider.id)
       setCheck({ kind: 'ok' })

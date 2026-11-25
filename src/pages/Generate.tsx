@@ -5,6 +5,7 @@ import { parseCards } from '../cards/parse'
 import { DEFAULT_DETAIL, DETAIL_LEVELS, planParts } from '../cards/plan'
 import { buildGuidance, buildUserPrompt, FOCUS_OPTIONS, MAX_CONTEXT_LENGTH, SYSTEM_PROMPT } from '../cards/prompt'
 import ErrorMessage from '../components/ErrorMessage'
+import ModelPicker from '../components/ModelPicker'
 import { checkBudget, needsExtraConfirm } from '../cost/budget'
 import { estimateRequest } from '../cost/estimate'
 import { recordSpend, useMonthSpend } from '../cost/ledger'
@@ -151,7 +152,6 @@ export default function Generate() {
   const blocked = budgetStatus === 'over' && !overBudgetOnce
   const extraConfirm = needsExtraConfirm(estimate.maxCost, limits.confirmThreshold)
   const canSend = requests.length > 0 && !tooLong && !blocked && !pending
-  const preset = provider.presets.find((p) => p.model === model)
 
   function resetConfirm() {
     if (status.kind === 'confirming') setStatus({ kind: 'idle' })
@@ -366,8 +366,8 @@ export default function Generate() {
         </div>
         )}
 
-        <div className="flex flex-wrap gap-x-8 gap-y-4">
-          <label className="block min-w-60 flex-1 space-y-1.5">
+        <div className="space-y-5">
+          <label className="block space-y-1.5">
             <span className="flex items-baseline justify-between text-sm font-medium">
               Detail
               <span className="text-indigo-600 dark:text-indigo-300">{level.label}</span>
@@ -393,25 +393,17 @@ export default function Generate() {
             <span className={`block ${muted}`}>{level.instruction} The AI decides how many cards that takes.</span>
           </label>
 
-          <fieldset className="space-y-1">
-            <legend className="text-sm font-medium">Quality</legend>
-            {provider.presets.map((p) => (
-              <label key={p.id} className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="quality"
-                  checked={model === p.model}
-                  disabled={pending}
-                  onChange={() => {
-                    saveProviderSettings({ ...account, model: p.model })
-                    resetConfirm()
-                  }}
-                />
-                {p.label}
-              </label>
-            ))}
-            {!preset && <p className={muted}>Custom setting (see Advanced in Settings)</p>}
-          </fieldset>
+          <div>
+            <ModelPicker
+              provider={provider}
+              value={model}
+              disabled={pending}
+              onChange={(m) => {
+                saveProviderSettings({ ...account, model: m })
+                resetConfirm()
+              }}
+            />
+          </div>
         </div>
 
         <div className="space-y-2 glass-inset rounded-2xl p-3.5 text-sm">

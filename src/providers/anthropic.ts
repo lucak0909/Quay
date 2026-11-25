@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { CARDS_JSON_SCHEMA } from '../cards/schema'
+import { priceFor } from '../cost/pricing'
 import { kindFromStatus, ProviderError, type ProviderAdapter } from './types'
 
 function client(apiKey: string) {
@@ -31,17 +32,29 @@ export const anthropicAdapter: ProviderAdapter = {
   },
 
   async generate(req) {
-    try {
-      const response = await client(req.apiKey).messages.create(
+    const send = (lowEffort: boolean) =>
+      client(req.apiKey).messages.create(
         {
           model: req.model,
           max_tokens: req.maxTokens,
           system: req.system,
           messages: [{ role: 'user', content: req.user }],
-          output_config: { format: { type: 'json_schema', schema: CARDS_JSON_SCHEMA } },
+          output_config: {
+            format: { type: 'json_schema', schema: CARDS_JSON_SCHEMA },
+            // Newer models think before answering, billed as output. Flashcards need very little.
+            ...(lowEffort ? { effort: 'low' as const } : {}),
+          },
         },
         { signal: req.signal },
       )
+    try {
+      const thinks = Boolean(priceFor(req.model)?.thinks)
+      const response = await send(thinks).catch((e) => {
+        // A model that doesn't accept the effort setting rejects the request with a 400, which isn't billed,
+        // so trying once more without it costs nothing.
+        if (thinks && e instanceof Anthropic.APIError && e.status === 400 && /effort/i.test(e.message)) return send(false)
+        throw e
+      })
       return {
         text: response.content.map((block) => (block.type === 'text' ? block.text : '')).join(''),
         inputTokens: response.usage.input_tokens,

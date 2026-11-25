@@ -30,13 +30,13 @@ export const openaiAdapter: ProviderAdapter = {
   },
 
   async generate(req) {
-    try {
-      const response = await client(req.apiKey).chat.completions.create(
+    const send = (noReasoning: boolean) =>
+      client(req.apiKey).chat.completions.create(
         {
           model: req.model,
           max_completion_tokens: req.maxTokens,
           // No hidden reasoning: flashcards don't need it, and it would be billed as extra output.
-          reasoning_effort: 'none',
+          ...(noReasoning ? { reasoning_effort: 'none' as const } : {}),
           messages: [
             { role: 'system', content: req.system },
             { role: 'user', content: req.user },
@@ -48,6 +48,12 @@ export const openaiAdapter: ProviderAdapter = {
         },
         { signal: req.signal },
       )
+    try {
+      const response = await send(true).catch((e) => {
+        // Some models don't accept "no reasoning"; that's rejected with an unbilled 400, so retry once without it.
+        if (e instanceof OpenAI.APIError && e.status === 400 && /reasoning/i.test(e.message)) return send(false)
+        throw e
+      })
       const choice = response.choices[0]
       return {
         text: choice?.message.content ?? '',
