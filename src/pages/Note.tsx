@@ -11,6 +11,7 @@ import NoteEditor from '../notes/NoteEditor'
 import { btnDanger, btnSecondary, muted } from '../ui'
 
 const SAVE_DELAY = 400
+const BULLETS_KEY = 'noteBullets'
 
 export default function Note() {
   const { id = '' } = useParams()
@@ -38,6 +39,8 @@ function NoteView({ note }: { note: NoteRow }) {
   const [status, setStatus] = useState<'saved' | 'saving'>('saved')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [hasText, setHasText] = useState(note.text.trim() !== '')
+  // Every line shows a bullet by default, like RemNote. One setting for all notes.
+  const bullets = useLiveQuery(async () => (await db.appSettings.get(BULLETS_KEY))?.value !== 'false') ?? true
 
   // Changes wait briefly, then save together. Anything pending is saved when leaving the page.
   const pending = useRef<Partial<NoteRow> | null>(null)
@@ -100,10 +103,20 @@ function NoteView({ note }: { note: NoteRow }) {
           >
             Make cards
           </button>
-          <Menu label="Note options" items={[{ label: 'Delete note', danger: true, onSelect: () => setConfirmDelete(true) }]} />
+          <Menu
+            label="Note options"
+            items={[
+              {
+                label: bullets ? 'Hide bullets' : 'Show bullets',
+                onSelect: () => db.appSettings.put({ key: BULLETS_KEY, value: String(!bullets) }),
+              },
+              { label: 'Delete note', danger: true, onSelect: () => setConfirmDelete(true) },
+            ]}
+          />
         </div>
       </div>
 
+      <div className={`glass space-y-4 rounded-[32px] py-7 pr-6 sm:py-9 sm:pr-10 ${bullets ? 'note-bullets pl-12 sm:pl-14' : 'pl-8 sm:pl-10'}`}>
       <input
         aria-label="Title"
         placeholder="Untitled note"
@@ -121,10 +134,10 @@ function NoteView({ note }: { note: NoteRow }) {
           setName(e.target.value)
           queue({ name: e.target.value.trim() })
         }}
-        className="w-full bg-transparent text-3xl font-semibold outline-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
+        className="w-full bg-transparent text-3xl font-bold tracking-tight outline-none placeholder:text-slate-400/70 dark:placeholder:text-slate-500"
       />
-
       <NoteEditor content={note.content} onChange={onEditorChange} />
+      </div>
 
       {confirmDelete && (
         <Dialog title={`Delete "${name.trim() || 'Untitled note'}"?`} onClose={() => setConfirmDelete(false)}>

@@ -5,7 +5,7 @@ import { db, type Card, type Deck } from '../db'
 import { countDue, DEFAULT_LIMITS, endOfDay, nextCard, totalDue, type DoneToday } from '../srs/queue'
 import { DAY, newState, schedule, SIMPLE_GRADES } from '../srs/scheduler'
 import { loadDeckStudy, toStudyCard } from '../srs/store'
-import { btn, btnSecondary, muted } from '../ui'
+import { btn, btnSecondary, muted , title } from '../ui'
 
 interface Session {
   deck: Deck
@@ -79,7 +79,7 @@ export default function Study() {
     const tomorrow = studyCards.filter((c) => c.srs.phase !== 'new' && c.srs.due <= endOfDay(now + DAY)).length
     return (
       <div className="mx-auto max-w-xl space-y-4 text-center">
-        <h1 className="text-2xl font-semibold">{studied.size > 0 ? 'Nice work!' : 'Nothing to study right now'}</h1>
+        <h1 className={title}>{studied.size > 0 ? 'Nice work!' : 'Nothing to study right now'}</h1>
         <p>
           {studied.size > 0 ? `You studied ${studied.size} ${studied.size === 1 ? 'card' : 'cards'}. ` : ''}
           {tomorrow > 0

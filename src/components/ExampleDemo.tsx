@@ -22,7 +22,7 @@ export default function ExampleDemo() {
         <p className={muted}>Here are some sample class notes and the cards Quay made from them.</p>
       </div>
 
-      <details className="rounded-md bg-slate-50 p-3 dark:bg-slate-950" open>
+      <details className="glass-inset rounded-2xl p-3.5" open>
         <summary className="cursor-pointer text-sm font-medium">The notes: {SAMPLE_TITLE}</summary>
         <pre className="mt-2 whitespace-pre-wrap font-sans text-sm">{SAMPLE_NOTES}</pre>
       </details>
@@ -53,7 +53,7 @@ function ReviewDemo() {
 
   if (done) {
     return (
-      <div className="space-y-3 rounded-md border border-dashed border-slate-300 p-4 text-sm dark:border-slate-700">
+      <div className="space-y-3 rounded-xl border border-dashed border-slate-300 p-4 text-sm dark:border-slate-700">
         <p>
           Done! You got {score.gotIt} of {SAMPLE_CARDS.length}. In the real app, cards you forget come back sooner
           and cards you know come back less often, so you spend your time on what you don't know yet.
@@ -77,9 +77,9 @@ function ReviewDemo() {
       <p className={muted}>
         Try studying them: card {index + 1} of {SAMPLE_CARDS.length}
       </p>
-      <div className="min-h-32 space-y-3 rounded-md border border-slate-200 p-4 dark:border-slate-700">
+      <div className="min-h-32 space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
         <p className="font-medium">{card.front}</p>
-        {revealed && <p className="border-t border-slate-200 pt-3 dark:border-slate-700">{card.back}</p>}
+        {revealed && <p className="border-t border-black/[.06] pt-3 dark:border-white/10">{card.back}</p>}
       </div>
       {revealed ? (
         <div className="flex gap-2">

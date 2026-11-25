@@ -13,7 +13,7 @@ import { flattenTree } from '../folders/tree'
 import { loadAdapter } from '../providers'
 import { friendlyError, mayHaveBeenBilled, type FriendlyError } from '../providers/errors'
 import { saveProviderSettings, useActiveProvider, useLimits } from '../settings'
-import { btn, btnDanger, btnSecondary, input, link, muted, panel, warnBox } from '../ui'
+import { btn, btnDanger, btnSecondary, input, link, muted, panel, warnBox , title } from '../ui'
 
 const CARD_COUNTS = [5, 10, 20, 30]
 const MAX_INPUT_TOKENS = 150_000
@@ -106,7 +106,7 @@ export default function Generate() {
   if (active === null) {
     return (
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold">Make cards</h1>
+        <h1 className={title}>Make cards</h1>
         <p className={warnBox}>
           Connect your AI account first. <Link to="/setup" className="font-medium underline">Set up Quay</Link>
         </p>
@@ -238,7 +238,7 @@ export default function Generate() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Make cards</h1>
+      <h1 className={title}>Make cards</h1>
 
       {blocker.state === 'blocked' && (
         <div className={`${warnBox} space-y-2`}>
@@ -360,7 +360,7 @@ export default function Generate() {
           </fieldset>
         </div>
 
-        <div className="space-y-2 rounded-md bg-slate-50 p-3 text-sm dark:bg-slate-950">
+        <div className="space-y-2 glass-inset rounded-2xl p-3.5 text-sm">
           {estimate.typicalCost !== null && estimate.maxCost !== null ? (
             <p>
               Estimated cost: <strong>about {formatUsd(estimate.typicalCost)}</strong>{' '}
@@ -443,8 +443,8 @@ export default function Generate() {
             {drafts.map((d, i) => (
               <li
                 key={d.id}
-                className={`space-y-2 rounded-md border p-3 ${
-                  d.problem ? 'border-amber-400 dark:border-amber-600' : 'border-slate-200 dark:border-slate-700'
+                className={`space-y-2 rounded-xl border p-3 ${
+                  d.problem ? 'border-amber-400 dark:border-amber-600' : 'border-black/[.06] dark:border-white/10'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -488,7 +488,7 @@ export default function Generate() {
             Add a card
           </button>
 
-          <div className="flex flex-wrap items-end gap-3 border-t border-slate-200 pt-4 dark:border-slate-700">
+          <div className="flex flex-wrap items-end gap-3 border-t border-black/[.06] pt-4 dark:border-white/10">
             <label className="space-y-1">
               <span className="block text-sm font-medium">Save to</span>
               <select className={input} value={deckChoice} onChange={(e) => setDeckChoice(e.target.value)}>

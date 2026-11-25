@@ -4,7 +4,7 @@ import { HowItWorks, WhatIsAKey } from '../components/Explainer'
 import { formatUsd, typicalSetCost } from '../cost/pricing'
 import { PROVIDERS } from '../providers/catalog'
 import { useActiveProvider, type ActiveProvider } from '../settings'
-import { link, panel } from '../ui'
+import { link, panel , title } from '../ui'
 
 const cheapestCosts = PROVIDERS.map((p) => typicalSetCost(p.presets[0].model)).filter((c): c is number => c !== undefined)
 const cheapestRange = `from about ${formatUsd(Math.min(...cheapestCosts))} to ${formatUsd(Math.max(...cheapestCosts))}`
@@ -123,13 +123,13 @@ export default function Help() {
   if (active === undefined) return null
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Help</h1>
+      <h1 className={title}>Help</h1>
       <HowItWorks />
       <WhatIsAKey />
       <section className={`${panel} space-y-3`}>
         <h2 className="text-lg font-semibold">Questions</h2>
         {buildFaqs(active).map((f) => (
-          <details key={f.q} className="rounded-md border border-slate-200 p-3 dark:border-slate-700">
+          <details key={f.q} className="rounded-xl border border-black/[.06] p-3 dark:border-white/10">
             <summary className="cursor-pointer text-sm font-medium">{f.q}</summary>
             <div className="mt-2 text-sm">{f.a}</div>
           </details>
