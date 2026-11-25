@@ -17,7 +17,8 @@ export default function App() {
     <div className="min-h-screen">
       <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <nav className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3">
-          <Link to="/" className="font-semibold text-indigo-600 dark:text-indigo-400">
+          <Link to="/" className="flex items-center gap-2 font-semibold text-indigo-600 dark:text-indigo-400">
+            <img src="/favicon.svg" alt="" className="h-6 w-6" />
             Quay
           </Link>
           {navItems.map((item) => (
