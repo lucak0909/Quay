@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Link, useParams } from 'react-router-dom'
 import { db } from '../db'
+import { folderPath } from '../folders/tree'
 import { countDue, DEFAULT_LIMITS, endOfDay, readiness, startOfDay, totalDue } from '../srs/queue'
 import { pullForwardForTest } from '../srs/scheduler'
 import { doneToday, toStudyCard } from '../srs/store'
@@ -33,11 +34,12 @@ export default function DeckView() {
       db.cards.where('deckId').equals(id).sortBy('createdAt'),
       db.reviews.where('at').aboveOrEqual(startOfDay(now)).filter((l) => l.deckId === id).toArray(),
     ])
-    return { deck: deck ?? null, cards, logs, now }
+    const path = deck?.folderId ? folderPath(await db.folders.toArray(), deck.folderId) : []
+    return { deck: deck ?? null, cards, logs, now, path }
   }, [id])
 
   if (!data) return null
-  const { deck, cards, logs, now } = data
+  const { deck, cards, logs, now, path } = data
   if (!deck) {
     return (
       <p className={muted}>
@@ -65,9 +67,19 @@ export default function DeckView() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/decks" className={`${muted} hover:underline`}>
-          ← Decks
-        </Link>
+        <nav aria-label="Folders" className={`${muted} flex flex-wrap gap-x-1`}>
+          <Link to="/decks" className="hover:underline">
+            ← Decks
+          </Link>
+          {path.map((folder) => (
+            <span key={folder.id}>
+              /{' '}
+              <Link to={`/decks?folder=${folder.id}`} className="hover:underline">
+                {folder.name}
+              </Link>
+            </span>
+          ))}
+        </nav>
         <h1 className="text-2xl font-semibold">{deck.name}</h1>
         <p className={muted}>{cards.length} cards</p>
       </div>

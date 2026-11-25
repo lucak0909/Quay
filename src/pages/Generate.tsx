@@ -9,6 +9,7 @@ import { estimateRequest } from '../cost/estimate'
 import { recordSpend, useMonthSpend } from '../cost/ledger'
 import { costUsd, formatUsd, priceFor } from '../cost/pricing'
 import { db } from '../db'
+import { flattenTree } from '../folders/tree'
 import { loadAdapter } from '../providers'
 import { friendlyError, mayHaveBeenBilled, type FriendlyError } from '../providers/errors'
 import { saveProviderSettings, useActiveProvider, useLimits } from '../settings'
@@ -56,6 +57,8 @@ export default function Generate() {
   const [lastCost, setLastCost] = useState<string | null>(null)
   const [deckChoice, setDeckChoice] = useState(params.get('deck') ?? 'new')
   const [newDeckName, setNewDeckName] = useState('')
+  const folders = useLiveQuery(() => db.folders.toArray())
+  const [folderChoice, setFolderChoice] = useState(params.get('folder') ?? '')
   const inFlight = useRef(false)
   const controller = useRef<AbortController | null>(null)
 
@@ -206,7 +209,8 @@ export default function Generate() {
     const deckId = deckChoice === 'new' ? crypto.randomUUID() : deckChoice
     await db.transaction('rw', db.decks, db.cards, async () => {
       if (deckChoice === 'new') {
-        await db.decks.add({ id: deckId, name: newDeckName.trim(), createdAt: now, updatedAt: now })
+        const folderId = folders?.some((f) => f.id === folderChoice) ? folderChoice : undefined
+        await db.decks.add({ id: deckId, name: newDeckName.trim(), folderId, createdAt: now, updatedAt: now })
       } else {
         await db.decks.update(deckId, { updatedAt: now })
       }
@@ -497,6 +501,20 @@ export default function Generate() {
                   value={newDeckName}
                   onChange={(e) => setNewDeckName(e.target.value)}
                 />
+              </label>
+            )}
+            {deckChoice === 'new' && folders && folders.length > 0 && (
+              <label className="space-y-1">
+                <span className="block text-sm font-medium">In folder</span>
+                <select className={input} value={folderChoice} onChange={(e) => setFolderChoice(e.target.value)}>
+                  <option value="">No folder</option>
+                  {flattenTree(folders).map(({ folder, depth }) => (
+                    <option key={folder.id} value={folder.id}>
+                      {'  '.repeat(depth)}
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
               </label>
             )}
             <button type="button" className={btn} onClick={save} disabled={incomplete > 0 || !deckValid}>
