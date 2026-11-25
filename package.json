@@ -8,11 +8,15 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "desktop": "tauri dev",
+    "desktop:build": "tauri build",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
     "@google/genai": "^3.6.1",
+    "@tauri-apps/plugin-opener": "^2.7.3",
     "dexie": "^4.4.7",
     "dexie-react-hooks": "^4.4.0",
     "openai": "^7.64.0",
@@ -22,6 +26,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.5",
+    "@tauri-apps/cli": "^2.12.6",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
