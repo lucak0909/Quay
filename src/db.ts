@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { ProviderId } from './providers/catalog'
+import type { FolderColor } from './folders/colors'
 import type { Grade, Phase, SrsState } from './srs/scheduler'
 
 export interface ProviderSettings {
@@ -20,6 +21,18 @@ export interface Deck {
   updatedAt: number
   // End of the day of the student's test, if they've set one.
   testDate?: number
+  // Missing for decks at the top level.
+  folderId?: string
+}
+
+export interface Folder {
+  id: string
+  name: string
+  color: FolderColor
+  // Missing for folders at the top level.
+  parentId?: string
+  createdAt: number
+  updatedAt: number
 }
 
 export interface Card {
@@ -63,6 +76,7 @@ export const db = new Dexie('studykey') as Dexie & {
   cards: EntityTable<Card, 'id'>
   spend: EntityTable<SpendEntry, 'id'>
   reviews: EntityTable<ReviewLog, 'id'>
+  folders: EntityTable<Folder, 'id'>
 }
 
 db.version(1).stores({
@@ -88,4 +102,9 @@ db.version(2)
 
 db.version(3).stores({
   reviews: '++id, deckId, at',
+})
+
+db.version(4).stores({
+  decks: 'id, updatedAt, folderId',
+  folders: 'id, parentId',
 })
