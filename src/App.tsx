@@ -18,7 +18,7 @@ export default function App() {
       <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <nav className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3">
           <Link to="/" className="font-semibold text-indigo-600 dark:text-indigo-400">
-            StudyKey
+            Quay
           </Link>
           {navItems.map((item) => (
             <NavLink
@@ -37,7 +37,7 @@ export default function App() {
           {spent !== undefined && (
             <Link
               to="/settings"
-              title="What you've spent with your AI account this month, through StudyKey"
+              title="What you've spent with your AI account this month, through Quay"
               className="ml-auto text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               This month: {formatUsd(spent)}

@@ -108,7 +108,7 @@ export default function Generate() {
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold">Make cards</h1>
         <p className={warnBox}>
-          Connect your AI account first. <Link to="/setup" className="font-medium underline">Set up StudyKey</Link>
+          Connect your AI account first. <Link to="/setup" className="font-medium underline">Set up Quay</Link>
         </p>
       </div>
     )

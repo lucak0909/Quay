@@ -1,7 +1,7 @@
 export const isDesktop = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 
 // In the desktop app, links to websites open in the student's normal browser
-// instead of inside the StudyKey window.
+// instead of inside the Quay window.
 export function openExternalLinksInBrowser() {
   if (!isDesktop) return
   document.addEventListener('click', (e) => {

@@ -31,7 +31,7 @@ type Pending =
 
 const noteName = (note: { name: string }) => note.name || 'Untitled note'
 
-const OPEN_KEY = 'studykey:openFolders'
+const OPEN_KEY = 'quay:openFolders'
 const smallBtn = btn.replace('px-4 py-2', 'px-3 py-1')
 const row = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/60'
 

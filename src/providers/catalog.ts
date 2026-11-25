@@ -60,7 +60,7 @@ export const PROVIDERS: ProviderInfo[] = [
       },
       {
         title: 'Create your key',
-        body: 'Open the keys page, click "Create Key", name it StudyKey, then copy it. It starts with sk-ant-. You can only see it once, so paste it below straight away.',
+        body: 'Open the keys page, click "Create Key", name it Quay, then copy it. It starts with sk-ant-. You can only see it once, so paste it below straight away.',
         href: 'https://platform.claude.com/settings/keys',
         cta: 'Open keys page',
       },
@@ -136,7 +136,7 @@ export const PROVIDERS: ProviderInfo[] = [
       },
       {
         title: 'Create your key',
-        body: 'Open the keys page, click "Create new secret key", name it StudyKey, then copy it. It starts with sk-. You can only see it once, so paste it below straight away.',
+        body: 'Open the keys page, click "Create new secret key", name it Quay, then copy it. It starts with sk-. You can only see it once, so paste it below straight away.',
         href: 'https://platform.openai.com/api-keys',
         cta: 'Open keys page',
       },

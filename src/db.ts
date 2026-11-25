@@ -83,6 +83,7 @@ export interface SpendEntry {
   estimated: boolean
 }
 
+// The database keeps the app's original name so existing libraries aren't lost.
 export const db = new Dexie('studykey') as Dexie & {
   providers: EntityTable<ProviderSettings, 'provider'>
   appSettings: EntityTable<AppSetting, 'key'>
