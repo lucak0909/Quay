@@ -38,7 +38,7 @@ export default function ModelPicker({
       </select>
       {current && (
         <span className={`block ${muted}`}>
-          {current.blurb}
+          {current.about}
           {cheapest && dearest && cheapest !== dearest && (
             <>
               {' '}

@@ -12,6 +12,14 @@ describe('model picker', () => {
     }
   })
 
+  it('every model has its own description', () => {
+    for (const p of PROVIDERS) {
+      const abouts = p.models.map((m) => m.about)
+      expect(abouts.every((a) => a.length > 10)).toBe(true)
+      expect(new Set(abouts).size).toBe(abouts.length)
+    }
+  })
+
   it('lists models from cheapest to most expensive, marking both ends', () => {
     for (const p of PROVIDERS) {
       const choices = modelChoices(p)

@@ -3,6 +3,8 @@ export type ProviderId = 'anthropic' | 'openai' | 'gemini'
 export interface ModelOption {
   id: string
   name: string
+  // One plain sentence about when a student would pick it.
+  about: string
 }
 
 export interface SetupStep {
@@ -68,11 +70,11 @@ export const PROVIDERS: ProviderInfo[] = [
       },
     ],
     models: [
-      { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5' },
-      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5' },
-      { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5' },
-      { id: 'claude-opus-5-5', name: 'Claude Opus 5.5' },
-      { id: 'claude-fable-5-2', name: 'Claude Fable 5.2' },
+      { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', about: 'Fastest and cheapest. Handles most class notes well.' },
+      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', about: 'The previous Haiku. Haiku 5.5 is newer and much cheaper.' },
+      { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', about: 'A good balance of quality and speed. Worth it for dense or technical notes.' },
+      { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', about: 'Stronger reasoning for hard subjects like advanced maths, law or medicine. Slower.' },
+      { id: 'claude-fable-5-2', name: 'Claude Fable 5.2', about: 'Anthropic’s most capable model. Rarely needed for flashcards.' },
     ],
     recommended: 'claude-haiku-5-5',
   },
@@ -107,11 +109,11 @@ export const PROVIDERS: ProviderInfo[] = [
       },
     ],
     models: [
-      { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite' },
-      { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite' },
-      { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' },
-      { id: 'gemini-4-hydrogen', name: 'Gemini 4 Hydrogen' },
-      { id: 'gemini-4-neon', name: 'Gemini 4 Neon' },
+      { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite', about: 'An older, lighter model. Fine for short, simple notes.' },
+      { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite', about: 'Cheap and capable. Handles most class notes well.' },
+      { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', about: 'Better quality for tricky or technical material.' },
+      { id: 'gemini-4-hydrogen', name: 'Gemini 4 Hydrogen', about: 'Google’s newer generation. Stronger on hard subjects.' },
+      { id: 'gemini-4-neon', name: 'Gemini 4 Neon', about: 'The most capable Gemini here. Rarely needed for flashcards.' },
     ],
     recommended: 'gemini-3.5-flash-lite',
   },
@@ -152,10 +154,10 @@ export const PROVIDERS: ProviderInfo[] = [
       },
     ],
     models: [
-      { id: 'gpt-6-luna', name: 'GPT-6 Luna' },
-      { id: 'gpt-6.1-terra', name: 'GPT-6.1 Terra' },
-      { id: 'gpt-6.2-sol', name: 'GPT-6.2 Sol' },
-      { id: 'gpt-6.2-astra', name: 'GPT-6.2 Astra' },
+      { id: 'gpt-6-luna', name: 'GPT-6 Luna', about: 'Fastest and cheapest. Handles most class notes well.' },
+      { id: 'gpt-6.1-terra', name: 'GPT-6.1 Terra', about: 'A step up in quality for tricky material.' },
+      { id: 'gpt-6.2-sol', name: 'GPT-6.2 Sol', about: 'Higher quality again. Worth it for dense or technical notes.' },
+      { id: 'gpt-6.2-astra', name: 'GPT-6.2 Astra', about: 'OpenAI’s most capable model. Rarely needed for flashcards.' },
     ],
     recommended: 'gpt-6-luna',
   },

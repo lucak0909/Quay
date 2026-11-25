@@ -11,8 +11,6 @@ export interface ModelChoice extends ModelOption {
   recommended: boolean
   // Short label for a dropdown option.
   label: string
-  // One plain sentence about when to pick it.
-  blurb: string
 }
 
 // A company's models from cheapest to most expensive, labelled so nobody needs to know model names.
@@ -31,15 +29,7 @@ export function modelChoices(provider: ProviderInfo): ModelChoice[] {
     const tags = [cheapest && 'cheapest', recommended && 'recommended', dearest && 'most expensive'].filter(Boolean)
     const price = `about ${formatUsd(m.perSet)} per 10 pages`
     const label = `${m.name} — ${price}${times > 1 ? ` (${times}× the cheapest)` : ''}${tags.length ? ` · ${tags.join(', ')}` : ''}`
-    const rank = i / Math.max(1, priced.length - 1)
-    const blurb = cheapest
-      ? 'The cheapest option. Good at turning notes into flashcards.'
-      : rank < 0.5
-        ? 'A step up for tricky or technical material, for a little more.'
-        : dearest
-          ? 'The most capable and most expensive. Rarely needed for flashcards.'
-          : 'Stronger on hard, technical material, and noticeably more expensive.'
-    return { ...m, perSet: m.perSet, times, cheapest, dearest, recommended, label, blurb }
+    return { ...m, perSet: m.perSet, times, cheapest, dearest, recommended, label }
   })
 }
 
