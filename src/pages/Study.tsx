@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import StudyCardView from '../components/StudyCardView'
+import StudyCardView, { type Answer } from '../components/StudyCardView'
 import { db, type Card, type Deck } from '../db'
 import { countDue, DEFAULT_LIMITS, endOfDay, nextCard, totalDue, type DoneToday } from '../srs/queue'
-import { DAY, newState, schedule, SIMPLE_GRADES } from '../srs/scheduler'
+import { formatInterval } from '../srs/format'
+import { DAY, newState, schedule, type Grade } from '../srs/scheduler'
 import { loadDeckStudy, toStudyCard } from '../srs/store'
-import { btn, btnSecondary, muted , title } from '../ui'
+import { btn, btnSecondary, muted, title } from '../ui'
+
+const GRADES: { grade: Grade; label: string; tone: Answer['tone'] }[] = [
+  { grade: 'again', label: 'Again', tone: 'red' },
+  { grade: 'hard', label: 'Hard', tone: 'amber' },
+  { grade: 'good', label: 'Good', tone: 'green' },
+  { grade: 'easy', label: 'Easy', tone: 'blue' },
+]
 
 interface Session {
   deck: Deck
@@ -33,13 +41,13 @@ export default function Study() {
   }, [id])
 
   const answer = useCallback(
-    async (gotIt: boolean) => {
+    async (index: number) => {
       if (!session || session === 'missing' || !currentId || busy) return
       setBusy(true)
       const now = Date.now()
       const card = session.cards.find((c) => c.id === currentId)!
       const prev = card.srs ?? newState()
-      const grade = gotIt ? SIMPLE_GRADES.gotIt : SIMPLE_GRADES.forgot
+      const grade = GRADES[index].grade
       const srs = schedule(prev, grade, now, undefined, session.deck.testDate)
       await db.transaction('rw', db.cards, db.reviews, async () => {
         await db.cards.update(card.id, { srs, updatedAt: now })
@@ -74,6 +82,11 @@ export default function Study() {
   const studyCards = cards.map(toStudyCard)
   const left = totalDue(countDue(studyCards, now, DEFAULT_LIMITS, done))
   const current = cards.find((c) => c.id === currentId)
+  // Each button says when the card would come back, so the choice is concrete.
+  const answers: Answer[] = GRADES.map(({ grade, label, tone }) => {
+    const next = schedule(current?.srs ?? newState(), grade, now, undefined, deck.testDate)
+    return { label, tone, hint: formatInterval(next.due - now) }
+  })
 
   if (!current) {
     const tomorrow = studyCards.filter((c) => c.srs.phase !== 'new' && c.srs.due <= endOfDay(now + DAY)).length
@@ -113,7 +126,9 @@ export default function Study() {
         back={current.back}
         revealed={revealed}
         onReveal={reveal}
+        answers={answers}
         onAnswer={answer}
+        spaceAnswer={2}
         busy={busy}
       />
     </div>
