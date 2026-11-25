@@ -1,5 +1,6 @@
 import Highlight from '@tiptap/extension-highlight'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
+import { TableKit } from '@tiptap/extension-table'
 import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, useEditorState, type Editor, type JSONContent } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
@@ -12,7 +13,8 @@ import { SlashCommands, type SlashItem, type SlashState } from './slash'
 // "# " heading, "- " bullet, "1. " numbered list, "[ ] " checklist, "> " quote,
 // **bold**, *italic*, `code`, ==highlight==, ~~strike~~, "---" line, ``` code block.
 // Tab / Shift+Tab indent, lines with children collapse, "/" opens a block menu
-// and selecting text shows a formatting bar.
+// (including tables), selecting text shows a formatting bar, and the cursor in a
+// table shows table actions.
 export default function NoteEditor({
   content,
   onChange,
@@ -32,10 +34,13 @@ export default function NoteEditor({
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
         link: { openOnClick: false, autolink: true },
+        // Keep an empty line after tables, lists and code (so you can get out of them), not after text or headings.
+        trailingNode: { notAfter: ['paragraph', 'heading'] },
       }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Highlight,
+      TableKit.configure({ table: { resizable: true, cellMinWidth: 60 } }),
       Outline,
       SlashCommands.configure({ onState: setSlash, onKey: (event) => slashKeys.holder.current?.(event) ?? false }),
       Placeholder.configure({
@@ -56,6 +61,7 @@ export default function NoteEditor({
     <>
       <EditorContent editor={editor} />
       {editor && <FormatBar editor={editor} />}
+      {editor && <TableBar editor={editor} />}
       {slash && <SlashMenu key={slash.query} state={slash} register={slashKeys.register} />}
     </>
   )
@@ -97,6 +103,49 @@ function FormatBar({ editor }: { editor: Editor }) {
           }`}
         >
           {m.icon}
+        </button>
+      ))}
+    </BubbleMenu>
+  )
+}
+
+const TABLE_ACTIONS = [
+  { label: '+ Row', title: 'Add a row below', run: (e: Editor) => e.chain().focus().addRowAfter().run() },
+  { label: '+ Column', title: 'Add a column to the right', run: (e: Editor) => e.chain().focus().addColumnAfter().run() },
+  { label: '− Row', title: 'Delete this row', run: (e: Editor) => e.chain().focus().deleteRow().run() },
+  { label: '− Column', title: 'Delete this column', run: (e: Editor) => e.chain().focus().deleteColumn().run() },
+  { label: 'Header', title: 'Turn the header row on or off', run: (e: Editor) => e.chain().focus().toggleHeaderRow().run() },
+  { label: 'Delete table', title: 'Delete the whole table', run: (e: Editor) => e.chain().focus().deleteTable().run(), danger: true },
+]
+
+// Appears while the cursor is inside a table.
+function TableBar({ editor }: { editor: Editor }) {
+  return (
+    <BubbleMenu
+      editor={editor}
+      pluginKey="tableBar"
+      shouldShow={({ editor, state }) => editor.isEditable && editor.isActive('table') && state.selection.empty}
+      // Sit just below the whole table rather than over the rows being edited.
+      getReferencedVirtualElement={() => {
+        const { node } = editor.view.domAtPos(editor.state.selection.from)
+        const table = (node instanceof Element ? node : node.parentElement)?.closest('table')
+        return table ? { getBoundingClientRect: () => table.getBoundingClientRect() } : null
+      }}
+      options={{ placement: 'bottom-start', offset: 8 }}
+      className="glass-thick z-40 flex flex-wrap items-center gap-0.5 rounded-full !bg-white/95 p-1 text-xs dark:!bg-slate-800/95"
+    >
+      {TABLE_ACTIONS.map((a) => (
+        <button
+          key={a.label}
+          type="button"
+          title={a.title}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => a.run(editor)}
+          className={`rounded-full px-2.5 py-1.5 font-medium transition hover:bg-black/[.06] dark:hover:bg-white/10 ${
+            a.danger ? 'text-red-600 dark:text-red-300' : 'text-slate-700 dark:text-slate-200'
+          }`}
+        >
+          {a.label}
         </button>
       ))}
     </BubbleMenu>

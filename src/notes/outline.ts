@@ -185,8 +185,9 @@ export const Outline = Extension.create({
 
   addKeyboardShortcuts() {
     return {
-      // Tab never leaves the note: it indents, or nests a list item.
+      // Tab never leaves the note: it indents, or nests a list item. In a table it moves between cells.
       Tab: ({ editor }) => {
+        if (editor.isActive('table')) return false
         const item = inItem(editor)
         if (item) {
           editor.commands.sinkListItem(item)
@@ -197,6 +198,7 @@ export const Outline = Extension.create({
         return true
       },
       'Shift-Tab': ({ editor }) => {
+        if (editor.isActive('table')) return false
         const item = inItem(editor)
         if (item) {
           editor.commands.liftListItem(item)

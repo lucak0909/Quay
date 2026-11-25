@@ -22,6 +22,12 @@ export const SLASH_ITEMS: SlashItem[] = [
   { title: 'Numbered list', hint: '1.', keywords: 'ol ordered steps', run: (e, r) => chain(e, r).toggleOrderedList().run() },
   { title: 'Checklist', hint: '[ ]', keywords: 'todo task checkbox', run: (e, r) => chain(e, r).toggleTaskList().run() },
   { title: 'Quote', hint: '>', keywords: 'blockquote citation', run: (e, r) => chain(e, r).toggleBlockquote().run() },
+  {
+    title: 'Table',
+    hint: '',
+    keywords: 'grid columns rows',
+    run: (e, r) => chain(e, r).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+  },
   { title: 'Code block', hint: '```', keywords: 'code pre programming', run: (e, r) => chain(e, r).toggleCodeBlock().run() },
   { title: 'Divider', hint: '---', keywords: 'hr line separator rule', run: (e, r) => chain(e, r).setHorizontalRule().run() },
 ]
