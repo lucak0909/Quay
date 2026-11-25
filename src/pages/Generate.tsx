@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useBlocker, useNavigate, useSearchParams } from 'react-router-dom'
 import { parseCards } from '../cards/parse'
-import { buildUserPrompt, SYSTEM_PROMPT } from '../cards/prompt'
+import { buildGuidance, buildUserPrompt, FOCUS_OPTIONS, MAX_CONTEXT_LENGTH, SYSTEM_PROMPT } from '../cards/prompt'
 import ErrorMessage from '../components/ErrorMessage'
 import { checkBudget, needsExtraConfirm } from '../cost/budget'
 import { estimateRequest } from '../cost/estimate'
@@ -29,6 +29,8 @@ interface Draft {
 interface SavedDraft {
   notes: string
   drafts: Draft[]
+  context?: string
+  focus?: string[]
 }
 
 type Status = { kind: 'idle' } | { kind: 'confirming' } | { kind: 'pending' } | { kind: 'error'; error: FriendlyError }
@@ -44,6 +46,10 @@ export default function Generate() {
   const [loaded, setLoaded] = useState(false)
   const [notes, setNotes] = useState('')
   const [drafts, setDrafts] = useState<Draft[]>([])
+  const [context, setContext] = useState('')
+  const [focus, setFocus] = useState<string[]>([])
+  const [contextOpen, setContextOpen] = useState(false)
+  const showContext = contextOpen || context.trim() !== '' || focus.length > 0
   const [cardCount, setCardCount] = useState(10)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const [overBudgetOnce, setOverBudgetOnce] = useState(false)
@@ -61,6 +67,8 @@ export default function Generate() {
         const saved = JSON.parse(row.value) as SavedDraft
         setNotes(saved.notes)
         setDrafts(saved.drafts)
+        setContext(saved.context ?? '')
+        setFocus(saved.focus ?? [])
       }
       setLoaded(true)
     })
@@ -68,9 +76,9 @@ export default function Generate() {
 
   useEffect(() => {
     if (!loaded) return
-    const value: SavedDraft = { notes, drafts }
+    const value: SavedDraft = { notes, drafts, context, focus }
     db.appSettings.put({ key: DRAFT_KEY, value: JSON.stringify(value) })
-  }, [loaded, notes, drafts])
+  }, [loaded, notes, drafts, context, focus])
 
   useEffect(() => () => controller.current?.abort(), [])
 
@@ -98,7 +106,7 @@ export default function Generate() {
   }
 
   const model = anthropic.model
-  const userPrompt = buildUserPrompt(notes, cardCount)
+  const userPrompt = buildUserPrompt(notes, cardCount, buildGuidance(context, focus))
   const estimate = estimateRequest(model, SYSTEM_PROMPT + userPrompt, cardCount)
   const budgetStatus = checkBudget(spent, estimate.maxCost, limits.monthlyBudget)
   const tooLong = estimate.inputTokens > MAX_INPUT_TOKENS
@@ -248,6 +256,56 @@ export default function Generate() {
             }}
           />
         </label>
+
+        {!showContext ? (
+          <button type="button" className={`${link} text-sm`} onClick={() => setContextOpen(true)} disabled={pending}>
+            + Add context for the AI (optional)
+          </button>
+        ) : (
+        <div className="space-y-2">
+          <label className="block space-y-1">
+            <span className="text-sm font-medium">
+              Tell the AI about this <span className="font-normal text-slate-500">(optional)</span>
+            </span>
+            <input
+              className={input}
+              maxLength={MAX_CONTEXT_LENGTH}
+              placeholder="e.g. A-level biology, exam on Friday, my teacher loves asking about the Calvin cycle"
+              value={context}
+              disabled={pending}
+              onChange={(e) => {
+                setContext(e.target.value)
+                resetConfirm()
+              }}
+            />
+          </label>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="What to focus on">
+            {FOCUS_OPTIONS.map((f) => {
+              const on = focus.includes(f.id)
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  aria-pressed={on}
+                  disabled={pending}
+                  onClick={() => {
+                    setFocus((fs) => (on ? fs.filter((x) => x !== f.id) : [...fs, f.id]))
+                    resetConfirm()
+                  }}
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    on
+                      ? 'border-indigo-600 bg-indigo-600 text-white'
+                      : 'border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {on ? '✓ ' : ''}
+                  {f.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        )}
 
         <div className="flex flex-wrap gap-6">
           <label className="space-y-1">

@@ -10,8 +10,7 @@ export function HowItWorks() {
         </li>
         <li>
           Instead of paying us a subscription, <strong>you pay the AI company directly</strong>, and only for what
-          you use. It's like paying for electricity by the meter, instead of a flat monthly fee that still cuts you
-          off.
+          you use. It's like paying only for the petrol your taxi ride uses, instead of the whole taxi fare.
         </li>
         <li>
           A typical set of notes costs <strong>a few cents</strong>. Even heavy use is usually under $3 a month.
