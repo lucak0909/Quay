@@ -99,6 +99,45 @@ body::before {
     0 8px 22px -8px rgb(79 70 229 / 0.6);
 }
 
+/* Scroll edge: content blurs and fades out as it passes under a floating bar,
+   instead of showing crisp, half-cut text around it. */
+@utility scroll-edge-top {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 -1.75rem;
+    z-index: -1;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    mask-image: linear-gradient(to bottom, #000 50%, transparent);
+    background: linear-gradient(to bottom, rgb(238 240 247 / 0.92), rgb(238 240 247 / 0.6) 55%, rgb(238 240 247 / 0));
+  }
+  @media (prefers-color-scheme: dark) {
+    &::before {
+      background: linear-gradient(to bottom, rgb(8 11 22 / 0.92), rgb(8 11 22 / 0.6) 55%, rgb(8 11 22 / 0));
+    }
+  }
+}
+@utility scroll-edge-bottom {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1.75rem 0 0;
+    z-index: -1;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    mask-image: linear-gradient(to top, #000 50%, transparent);
+    background: linear-gradient(to top, rgb(238 240 247 / 0.92), rgb(238 240 247 / 0.6) 55%, rgb(238 240 247 / 0));
+  }
+  @media (prefers-color-scheme: dark) {
+    &::before {
+      background: linear-gradient(to top, rgb(8 11 22 / 0.92), rgb(8 11 22 / 0.6) 55%, rgb(8 11 22 / 0));
+    }
+  }
+}
+
 /* Hide scrollbars on the phone tab bar while keeping it scrollable. */
 @utility no-scrollbar {
   scrollbar-width: none;
@@ -171,7 +210,76 @@ body::before {
 .note-editor hr {
   @apply my-6 border-slate-300 dark:border-slate-700;
 }
-.note-editor p.is-editor-empty:first-child::before {
+.note-editor :is(p, h1, h2, h3).is-empty::before {
   content: attr(data-placeholder);
-  @apply pointer-events-none float-left h-0 text-slate-400;
+  @apply pointer-events-none float-left h-0 font-normal text-slate-400/80 dark:text-slate-500;
+}
+.note-editor :is(h1, h2, h3).is-empty::before {
+  @apply font-semibold;
+}
+
+/* Outlining: collapse arrows, collapsed lines and indents. */
+.note-editor .outline-parent {
+  position: relative;
+}
+.note-editor .outline-hidden {
+  display: none;
+}
+.note-editor li.is-collapsed > :is(ul, ol),
+.note-editor li.is-collapsed > div > :is(ul, ol) {
+  display: none;
+}
+.outline-toggle {
+  position: absolute;
+  left: -1.6rem;
+  top: calc((1lh - 1.25rem) / 2);
+  display: flex;
+  height: 1.25rem;
+  width: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--color-slate-400);
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    background-color 0.15s,
+    color 0.15s;
+}
+.outline-toggle svg {
+  height: 0.75rem;
+  width: 0.75rem;
+  transform: rotate(90deg);
+  transition: transform 0.15s;
+}
+.outline-toggle.is-collapsed svg {
+  transform: rotate(0deg);
+}
+.outline-toggle:hover {
+  @apply bg-black/[.06] text-slate-700 dark:bg-white/10 dark:text-slate-200;
+}
+.note-editor .outline-parent:hover > .outline-toggle,
+.note-editor .outline-parent:hover > div > .outline-toggle,
+.outline-toggle:focus-visible,
+.outline-toggle.is-collapsed {
+  opacity: 1;
+}
+.outline-toggle.is-collapsed {
+  color: var(--color-indigo-500);
+}
+@media (hover: none) {
+  .outline-toggle {
+    opacity: 0.6;
+  }
+}
+/* List items: the arrow sits to the left of the bullet or number. */
+.note-editor :is(ul, ol):not([data-type="taskList"]) > li > .outline-toggle {
+  left: -2.75rem;
+}
+/* A collapsed line shows a small "…" so it's clear there's more inside. */
+.note-editor :is(p, h1, h2, h3).is-collapsed::after,
+.note-editor li.is-collapsed > p::after,
+.note-editor li.is-collapsed > div > p:first-of-type::after {
+  content: "…";
+  @apply ml-1.5 inline-block rounded-full bg-indigo-500/12 px-1.5 align-middle text-xs leading-4 font-semibold text-indigo-600 dark:text-indigo-300;
 }
