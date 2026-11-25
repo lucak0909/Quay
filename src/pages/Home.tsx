@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom'
 import ExampleDemo from '../components/ExampleDemo'
 import { HowItWorks, WhatIsAKey } from '../components/Explainer'
 import { db } from '../db'
-import { useProviderSettings } from '../settings'
+import { useActiveProvider } from '../settings'
 import { btn, btnSecondary, link, muted, panel } from '../ui'
 
 export default function Home() {
-  const providers = useProviderSettings()
-  if (!providers) return null
-  return providers.anthropic.apiKey ? <Dashboard /> : <Welcome />
+  const active = useActiveProvider()
+  const deckCount = useLiveQuery(() => db.decks.count())
+  if (active === undefined || deckCount === undefined) return null
+  return active || deckCount > 0 ? <Dashboard /> : <Welcome />
 }
 
 function Welcome() {
