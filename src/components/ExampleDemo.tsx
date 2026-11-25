@@ -19,7 +19,7 @@ export default function ExampleDemo() {
     <section className={`${panel} space-y-4`}>
       <div>
         <h2 className="text-lg font-semibold">See an example</h2>
-        <p className={muted}>Here are some sample class notes and the cards StudyKey made from them.</p>
+        <p className={muted}>Here are some sample class notes and the cards Quay made from them.</p>
       </div>
 
       <details className="rounded-md bg-slate-50 p-3 dark:bg-slate-950" open>
@@ -28,7 +28,7 @@ export default function ExampleDemo() {
       </details>
 
       <p className="text-sm">
-        ↓ StudyKey turned them into <strong>{SAMPLE_CARDS.length} flashcards</strong>. Making these with your
+        ↓ Quay turned them into <strong>{SAMPLE_CARDS.length} flashcards</strong>. Making these with your
         own key would cost between <strong>{formatUsd(sampleMin)}</strong> and{' '}
         <strong>{formatUsd(sampleMax)}</strong>, depending on the AI company you choose.
       </p>

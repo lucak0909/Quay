@@ -69,7 +69,7 @@ export default function DeckView() {
       <div>
         <nav aria-label="Folders" className={`${muted} flex flex-wrap gap-x-1`}>
           <Link to="/decks" className="hover:underline">
-            ← Decks
+            ← Library
           </Link>
           {path.map((folder) => (
             <span key={folder.id}>
@@ -133,7 +133,7 @@ export default function DeckView() {
                 <p className={muted}>Every card will come up again before your test.</p>
               </div>
             ) : (
-              <p className={muted}>Set a date and StudyKey makes sure every card comes up before it.</p>
+              <p className={muted}>Set a date and Quay makes sure every card comes up before it.</p>
             )}
           </div>
         </section>

@@ -1,3 +1,4 @@
+import type { JSONContent } from '@tiptap/react'
 import Dexie, { type EntityTable } from 'dexie'
 import type { ProviderId } from './providers/catalog'
 import type { FolderColor } from './folders/colors'
@@ -31,6 +32,19 @@ export interface Folder {
   color: FolderColor
   // Missing for folders at the top level.
   parentId?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface Note {
+  id: string
+  name: string
+  // The editor's document (Tiptap JSON).
+  content: JSONContent
+  // Plain text copy, for search and for making cards.
+  text: string
+  // Missing for notes at the top level.
+  folderId?: string
   createdAt: number
   updatedAt: number
 }
@@ -69,6 +83,7 @@ export interface SpendEntry {
   estimated: boolean
 }
 
+// The database keeps the app's original name so existing libraries aren't lost.
 export const db = new Dexie('studykey') as Dexie & {
   providers: EntityTable<ProviderSettings, 'provider'>
   appSettings: EntityTable<AppSetting, 'key'>
@@ -77,6 +92,7 @@ export const db = new Dexie('studykey') as Dexie & {
   spend: EntityTable<SpendEntry, 'id'>
   reviews: EntityTable<ReviewLog, 'id'>
   folders: EntityTable<Folder, 'id'>
+  notes: EntityTable<Note, 'id'>
 }
 
 db.version(1).stores({
@@ -107,4 +123,8 @@ db.version(3).stores({
 db.version(4).stores({
   decks: 'id, updatedAt, folderId',
   folders: 'id, parentId',
+})
+
+db.version(5).stores({
+  notes: 'id, folderId, updatedAt',
 })

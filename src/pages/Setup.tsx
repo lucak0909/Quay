@@ -23,9 +23,9 @@ function ChooseProvider({ onChoose }: { onChoose: (id: ProviderInfo['id']) => vo
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Set up StudyKey</h1>
+        <h1 className="text-2xl font-semibold">Set up Quay</h1>
         <p className={muted}>
-          StudyKey works with several AI companies. Pick one to connect. You can switch at any time in Settings.
+          Quay works with several AI companies. Pick one to connect. You can switch at any time in Settings.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">

@@ -28,12 +28,12 @@ function AccountLink({ active, url, label }: { active: ActiveProvider | null; ur
 function buildFaqs(active: ActiveProvider | null): { q: string; a: ReactNode }[] {
   return [
     {
-      q: 'Why do I pay the AI company and not StudyKey?',
+      q: 'Why do I pay the AI company and not Quay?',
       a: (
         <>
-          StudyKey doesn't run its own AI. The AI that writes your cards belongs to an AI company (such as Anthropic,
+          Quay doesn't run its own AI. The AI that writes your cards belongs to an AI company (such as Anthropic,
           Google or OpenAI), so the cost goes straight to them, at their normal prices. Apps with a subscription pay the
-          same AI companies and add a markup, plus usage limits. With StudyKey there's no middleman.
+          same AI companies and add a markup, plus usage limits. With Quay there's no middleman.
         </>
       ),
     },
@@ -42,7 +42,7 @@ function buildFaqs(active: ActiveProvider | null): { q: string; a: ReactNode }[]
       a: (
         <>
           On the cheapest settings, {cheapestRange} for 10 pages of notes, depending on the AI company. Before every
-          request StudyKey shows you the estimated cost, and you can set a monthly budget in{' '}
+          request Quay shows you the estimated cost, and you can set a monthly budget in{' '}
           <Link to="/settings" className={link}>
             Settings
           </Link>
@@ -64,21 +64,21 @@ function buildFaqs(active: ActiveProvider | null): { q: string; a: ReactNode }[]
       q: 'Is my key safe?',
       a: (
         <>
-          Your key is saved in this browser on this device only. StudyKey has no servers that see or store it. It's only
+          Your key is saved in this browser on this device only. Quay has no servers that see or store it. It's only
           sent to the AI company when you make cards. Anyone who can use this browser profile could read it, so don't
-          use StudyKey on a shared computer without removing your key afterwards.
+          use Quay on a shared computer without removing your key afterwards.
         </>
       ),
     },
     {
-      q: 'Does StudyKey see my notes?',
+      q: 'Does Quay see my notes?',
       a: <>No. Your notes and cards stay on this device. Notes are only sent to the AI company when you press Make cards.</>,
     },
     {
       q: 'What happens if I run out of credit?',
       a: (
         <>
-          StudyKey will tell you your AI account is out of credit. Nothing is lost. Your decks and studying still work
+          Quay will tell you your AI account is out of credit. Nothing is lost. Your decks and studying still work
           without credit, because credit is only needed to make new cards. Add more:{' '}
           <AccountLink active={active} url={active?.info.billingUrl} label="Add credit" />.
         </>
@@ -88,7 +88,7 @@ function buildFaqs(active: ActiveProvider | null): { q: string; a: ReactNode }[]
       q: 'How do I stop spending?',
       a: (
         <>
-          StudyKey only spends when you press Make cards. To be extra safe, set a monthly budget in Settings, set a
+          Quay only spends when you press Make cards. To be extra safe, set a monthly budget in Settings, set a
           spending limit on your AI account (
           <AccountLink active={active} url={active?.info.limitsUrl} label="Set a limit" />
           ), or delete your key on your AI company's website so it stops working everywhere.
@@ -100,7 +100,7 @@ function buildFaqs(active: ActiveProvider | null): { q: string; a: ReactNode }[]
       a: (
         <dl className="space-y-1">
           <div>
-            <dt className="inline font-medium">API key:</dt> <dd className="inline">the "key" you paste into StudyKey.</dd>
+            <dt className="inline font-medium">API key:</dt> <dd className="inline">the "key" you paste into Quay.</dd>
           </div>
           <div>
             <dt className="inline font-medium">Model:</dt>{' '}

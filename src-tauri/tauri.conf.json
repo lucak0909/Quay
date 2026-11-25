@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "StudyKey",
+  "productName": "Quay",
   "version": "0.1.0",
-  "identifier": "io.github.lucak0909.studykey",
+  "identifier": "io.github.lucak0909.quay",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "StudyKey",
+        "title": "Quay",
         "width": 1200,
         "height": 820,
         "minWidth": 420,
@@ -38,9 +38,9 @@
     "active": true,
     "targets": "all",
     "shortDescription": "Notes and flashcards with your own AI key",
-    "longDescription": "StudyKey turns your notes into flashcards and quizzes using your own AI account, so you pay the AI company directly with no subscription markup, then helps you study them with spaced repetition.",
+    "longDescription": "Quay turns your notes into flashcards and quizzes using your own AI account, so you pay the AI company directly with no subscription markup, then helps you study them with spaced repetition.",
     "category": "Education",
-    "copyright": "StudyKey contributors. Licensed under AGPL-3.0-or-later.",
+    "copyright": "Quay contributors. Licensed under AGPL-3.0-or-later.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

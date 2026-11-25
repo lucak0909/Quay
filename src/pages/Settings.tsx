@@ -144,7 +144,7 @@ function SpendingSection({ limits, spent, active }: { limits: Limits; spent: num
       <div>
         <h2 className="font-semibold">Spending</h2>
         <p className="text-sm">
-          You've spent <strong>{formatUsd(spent)}</strong> through StudyKey this month.
+          You've spent <strong>{formatUsd(spent)}</strong> through Quay this month.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -161,7 +161,7 @@ function SpendingSection({ limits, spent, active }: { limits: Limits; spent: num
               setSaved(false)
             }}
           />
-          <span className={`block ${muted}`}>StudyKey stops before you go over this. Set 0 for no budget.</span>
+          <span className={`block ${muted}`}>Quay stops before you go over this. Set 0 for no budget.</span>
         </label>
         <label className="space-y-1">
           <span className="block text-sm font-medium">Double-check anything over ($)</span>
@@ -194,7 +194,7 @@ function SpendingSection({ limits, spent, active }: { limits: Limits; spent: num
         {saved && <span className="text-sm text-green-600 dark:text-green-400">Saved</span>}
       </div>
       <p className={muted}>
-        StudyKey's budget only covers what you do in StudyKey on this device. For a limit that can't be exceeded, also
+        Quay's budget only covers what you do in Quay on this device. For a limit that can't be exceeded, also
         set one in your AI account.{' '}
         {active && (
           <a href={active.info.limitsUrl} target="_blank" rel="noreferrer" className={link}>

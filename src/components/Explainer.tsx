@@ -5,10 +5,10 @@ import { muted, panel } from '../ui'
 export function HowItWorks() {
   return (
     <section className={`${panel} space-y-3`}>
-      <h2 className="text-lg font-semibold">How StudyKey works</h2>
+      <h2 className="text-lg font-semibold">How Quay works</h2>
       <ol className="list-decimal space-y-2 pl-5 text-sm">
         <li>
-          StudyKey uses an AI (like ChatGPT or Claude) to turn your notes into flashcards.
+          Quay uses an AI (like ChatGPT or Claude) to turn your notes into flashcards.
         </li>
         <li>
           Instead of paying us a subscription, <strong>you pay the AI company directly</strong>, and only for what
@@ -35,7 +35,7 @@ const roughUsd = (n: number) => (n >= 1 ? `$${Math.round(n)}` : formatUsd(n))
 
 export function CostComparison() {
   const rows = [
-    ['StudyKey (pay as you go)', `about ${roughUsd(yearMin)}–${roughUsd(yearMax).slice(1)}`, 'No limit except your own budget'],
+    ['Quay (pay as you go)', `about ${roughUsd(yearMin)}–${roughUsd(yearMax).slice(1)}`, 'No limit except your own budget'],
     ['RemNote Pro with AI', '$240', 'Monthly AI credit cap'],
     ['Quizlet Plus', 'about $36–45', 'Limits on AI note uploads'],
   ]
@@ -60,8 +60,8 @@ export function CostComparison() {
         </tbody>
       </table>
       <p className={`${muted} mt-1 text-xs`}>
-        StudyKey range assumes 10–120 sets of notes a month for 9 study months, on the cheapest setting of each AI
-        company StudyKey supports.
+        Quay range assumes 10–120 sets of notes a month for 9 study months, on the cheapest setting of each AI
+        company Quay supports.
       </p>
     </div>
   )
@@ -72,11 +72,11 @@ export function WhatIsAKey() {
     <section className={`${panel} space-y-2`}>
       <h2 className="text-lg font-semibold">What's a "key"?</h2>
       <p className="text-sm">
-        A key is a private password that lets StudyKey use your AI account. You create it on the AI company's
-        website and paste it into StudyKey.
+        A key is a private password that lets Quay use your AI account. You create it on the AI company's
+        website and paste it into Quay.
       </p>
       <p className="text-sm">
-        It stays on this device. StudyKey has no servers that see or store it, and it's only ever sent to the AI
+        It stays on this device. Quay has no servers that see or store it, and it's only ever sent to the AI
         company when you make cards. Don't share it with anyone.
       </p>
     </section>

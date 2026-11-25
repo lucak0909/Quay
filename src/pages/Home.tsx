@@ -21,7 +21,7 @@ function Welcome() {
       <div className="space-y-3">
         <h1 className="text-3xl font-semibold">Turn your notes into flashcards for a few cents</h1>
         <p className="text-slate-600 dark:text-slate-400">
-          Paste your class notes and StudyKey's AI writes the flashcards for you. No subscription: you pay the AI
+          Paste your class notes and Quay's AI writes the flashcards for you. No subscription: you pay the AI
           company directly for what you use.
         </p>
         <div className="flex flex-wrap gap-3">
