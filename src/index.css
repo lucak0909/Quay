@@ -181,7 +181,7 @@ html {
   position: relative;
   margin-left: -1.5rem;
   padding-block: 2px;
-  padding-left: calc((var(--indent, 0) + 1) * 1.5rem);
+  padding-left: calc((var(--indent, 0) - var(--zoom-indent, 0) + 1) * 1.5rem);
 }
 /* Guide lines: one thin line under each ancestor's bullet, drawn as a background so any depth works. */
 .note-editor > [data-indent] {
@@ -191,7 +191,7 @@ html {
     var(--guide) calc(0.75rem - 0.5px) calc(0.75rem + 0.5px),
     transparent calc(0.75rem + 0.5px) 1.5rem
   );
-  background-size: calc(var(--indent, 0) * 1.5rem) 100%;
+  background-size: calc((var(--indent, 0) - var(--zoom-indent, 0)) * 1.5rem) 100%;
   background-repeat: no-repeat;
 }
 
@@ -225,7 +225,7 @@ html {
 .outline-bullet {
   position: absolute;
   top: 2px;
-  left: calc(var(--indent, 0) * 1.5rem);
+  left: calc((var(--indent, 0) - var(--zoom-indent, 0)) * 1.5rem);
   display: none;
   height: 1lh;
   width: 1.5rem;
@@ -295,7 +295,7 @@ html {
 }
 .note-editor > .outline-line > .outline-toggle {
   top: calc(2px + (1lh - 1.25rem) / 2);
-  left: calc(var(--indent, 0) * 1.5rem - 1.1rem);
+  left: calc((var(--indent, 0) - var(--zoom-indent, 0)) * 1.5rem - 1.1rem);
 }
 .outline-toggle svg {
   height: 0.75rem;
@@ -470,4 +470,54 @@ html {
 }
 .note-editor.resize-cursor {
   cursor: col-resize;
+}
+
+/* Zoomed into one line: everything else is hidden, and the zoomed line reads as a heading. */
+.note-editor .outline-out-of-zoom {
+  display: none !important;
+}
+.note-editor > .is-zoom-root {
+  margin: 0 0 0.6rem;
+  padding-left: 0;
+  background: none;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+/* Bullets can be clicked (zoom in) and dragged (move the line). */
+.outline-bullet {
+  cursor: grab;
+  touch-action: none;
+}
+.outline-bullet:hover > span {
+  box-shadow: 0 0 0 5px rgb(99 102 241 / 0.15);
+}
+body.is-dragging-line,
+body.is-dragging-line * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+.note-editor .is-drag-source {
+  opacity: 0.35;
+}
+.outline-drop-indicator {
+  position: fixed;
+  z-index: 60;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-indigo-500);
+  pointer-events: none;
+}
+.outline-drop-indicator::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  height: 8px;
+  width: 8px;
+  border-radius: 999px;
+  border: 2px solid var(--color-indigo-500);
+  background: white;
 }

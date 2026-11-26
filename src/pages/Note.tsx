@@ -51,6 +51,9 @@ function edited(at: number, now: number) {
 const SHORTCUTS: [string, string][] = [
   ['Tab / Shift+Tab', 'Indent or outdent a line'],
   ['Ctrl+↑ / Ctrl+↓', 'Collapse or expand a line'],
+  ['Alt+Shift+↑ / ↓', 'Move a line (and what’s under it) up or down'],
+  ['Click a bullet', 'Zoom into that line (Esc to zoom out)'],
+  ['Drag a bullet', 'Move a line anywhere, or nest it'],
   ['/', 'Insert a heading, list, table…'],
   ['# , ## , ###', 'Headings'],
   ['1.  or  [ ]', 'Numbered list or checklist'],
@@ -219,7 +222,7 @@ function NoteView({ note }: { note: NoteRow }) {
         <p className="mb-5 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
           {edited(lastEdited, now)} · {words} {words === 1 ? 'word' : 'words'}
         </p>
-        <NoteEditor content={note.content} onChange={onEditorChange} bullets={bullets} onReady={setEditor} onExitTop={exitToTitle} />
+        <NoteEditor content={note.content} onChange={onEditorChange} bullets={bullets} title={name} onReady={setEditor} onExitTop={exitToTitle} />
       </div>
 
       {dialog === 'move' && folders && (

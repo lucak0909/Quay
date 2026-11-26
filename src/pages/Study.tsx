@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import StudyCardView, { type Answer } from '../components/StudyCardView'
 import { db, type Card, type Deck } from '../db'
@@ -29,7 +29,8 @@ export default function Study() {
   const [currentId, setCurrentId] = useState<string | undefined>()
   const [revealed, setRevealed] = useState(false)
   const [studied, setStudied] = useState<Set<string>>(new Set())
-  const [busy, setBusy] = useState(false)
+  // True between showing an answer and grading it, so a quick double key press can't grade twice.
+  const canAnswer = useRef(false)
 
   useEffect(() => {
     const now = Date.now()
@@ -41,15 +42,16 @@ export default function Study() {
   }, [id])
 
   const answer = useCallback(
-    async (index: number) => {
-      if (!session || session === 'missing' || !currentId || busy) return
-      setBusy(true)
+    (index: number) => {
+      if (!session || session === 'missing' || !currentId || !canAnswer.current) return
+      canAnswer.current = false
       const now = Date.now()
       const card = session.cards.find((c) => c.id === currentId)!
       const prev = card.srs ?? newState()
       const grade = GRADES[index].grade
       const srs = schedule(prev, grade, now, undefined, session.deck.testDate)
-      await db.transaction('rw', db.cards, db.reviews, async () => {
+      // Move on straight away, and save in the background, so a quick key press is never dropped.
+      void db.transaction('rw', db.cards, db.reviews, async () => {
         await db.cards.update(card.id, { srs, updatedAt: now })
         await db.reviews.add({ cardId: card.id, deckId: card.deckId, at: now, grade, mode: 'learn', prevPhase: prev.phase })
       })
@@ -62,12 +64,14 @@ export default function Study() {
       setStudied((s) => new Set(s).add(card.id))
       setRevealed(false)
       setCurrentId(nextCard(cards.map(toStudyCard), now, DEFAULT_LIMITS, done)?.id)
-      setBusy(false)
     },
-    [session, currentId, busy],
+    [session, currentId],
   )
 
-  const reveal = useCallback(() => setRevealed(true), [])
+  const reveal = useCallback(() => {
+    canAnswer.current = true
+    setRevealed(true)
+  }, [])
 
   if (session === null) return null
   if (session === 'missing') {
@@ -129,7 +133,6 @@ export default function Study() {
         answers={answers}
         onAnswer={answer}
         spaceAnswer={2}
-        busy={busy}
       />
     </div>
   )

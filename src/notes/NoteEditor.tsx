@@ -5,10 +5,10 @@ import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, useEditorState, type Editor, type JSONContent } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { EditorIcons, SLASH_ICONS } from './icons'
-import { Outline } from './outline'
+import { Outline, zoomInfo } from './outline'
 import { SlashCommands, type SlashItem, type SlashState } from './slash'
 
 // Rich-text editor that formats as you type, like RemNote or Markdown:
@@ -20,12 +20,15 @@ export default function NoteEditor({
   content,
   onChange,
   bullets,
+  title,
   onReady,
   onExitTop,
 }: {
   content: JSONContent
   onChange: (content: JSONContent, text: string) => void
   bullets: boolean
+  // The note's title, shown as the first step of the breadcrumb when zoomed in.
+  title: string
   // Gives the page the editor, for commands like "Collapse all".
   onReady?: (editor: Editor) => void
   // Up arrow or Backspace at the very start of the note: go back to the title.
@@ -99,6 +102,7 @@ export default function NoteEditor({
 
   return (
     <>
+      {editor && <ZoomBar editor={editor} title={title} />}
       <EditorContent editor={editor} />
       {editor && <FormatBar editor={editor} bullets={bullets} />}
       {editor && <TableBar editor={editor} />}
@@ -386,5 +390,30 @@ function SlashMenu({ state, register }: { state: SlashState; register: (handler:
         })
       )}
     </div>
+  )
+}
+
+// While zoomed into a line: where you are, with a way back out.
+function ZoomBar({ editor, title }: { editor: Editor; title: string }) {
+  const zoom = useEditorState({ editor, selector: ({ editor }) => zoomInfo(editor.state) })
+  if (!zoom) return null
+  const crumb = 'max-w-48 truncate rounded-full px-2 py-0.5 hover:bg-black/[.05] hover:text-slate-800 dark:hover:bg-white/10 dark:hover:text-white'
+  return (
+    <nav aria-label="Zoomed in" className="-ml-2 mb-3 flex flex-wrap items-center gap-0.5 text-sm text-slate-500 dark:text-slate-400">
+      <button type="button" className={crumb} onClick={() => editor.commands.setZoom(null)}>
+        {title.trim() || 'Untitled note'}
+      </button>
+      {zoom.path.slice(0, -1).map((step) => (
+        <span key={step.pos} className="flex items-center gap-0.5">
+          <ChevronRight className="h-3.5 w-3.5 opacity-50" aria-hidden="true" />
+          <button type="button" className={crumb} onClick={() => editor.commands.setZoom(step.pos)}>
+            {step.text}
+          </button>
+        </span>
+      ))}
+      <ChevronRight className="h-3.5 w-3.5 opacity-50" aria-hidden="true" />
+      <span className="max-w-48 truncate px-2 font-medium text-slate-700 dark:text-slate-200">{zoom.path.at(-1)!.text}</span>
+      <span className="ml-auto hidden text-xs text-slate-400 sm:inline">Esc to zoom out</span>
+    </nav>
   )
 }
