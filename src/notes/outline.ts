@@ -1,4 +1,4 @@
-import { Extension, type Editor } from '@tiptap/core'
+import { Extension, InputRule, type Editor } from '@tiptap/core'
 import type { Node as PMNode } from '@tiptap/pm/model'
 import { Plugin, PluginKey, TextSelection, type EditorState } from '@tiptap/pm/state'
 import { Decoration, DecorationSet, type EditorView } from '@tiptap/pm/view'
@@ -16,6 +16,7 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     outline: {
       indent: (delta: 1 | -1) => ReturnType
+      setAllCollapsed: (collapsed: boolean) => ReturnType
     }
   }
 }
@@ -99,10 +100,44 @@ function toggleButton(view: EditorView, getPos: () => number | undefined, collap
   return button
 }
 
+// Every top-level line gets a real bullet element (styled, and later clickable and draggable),
+// and lines with children get a collapse arrow beside it.
+function bulletWidget(state: 'plain' | 'parent' | 'collapsed') {
+  const bullet = document.createElement('span')
+  bullet.className = `outline-bullet is-${state}`
+  bullet.contentEditable = 'false'
+  bullet.setAttribute('aria-hidden', 'true')
+  bullet.appendChild(document.createElement('span'))
+  return bullet
+}
+
 function decorations(state: EditorState): DecorationSet {
   const { parents, hidden, items } = analyse(state.doc)
   const decos: Decoration[] = []
-  for (const { pos, node } of [...parents, ...items]) {
+  const parentPositions = new Set(parents.map((p) => p.pos))
+  state.doc.forEach((node, pos) => {
+    if (!INDENTABLE.includes(node.type.name)) return
+    const isParent = parentPositions.has(pos)
+    const collapsed = isParent && Boolean(node.attrs.collapsed)
+    const kind = collapsed ? 'collapsed' : isParent ? 'parent' : 'plain'
+    decos.push(
+      Decoration.node(pos, pos + node.nodeSize, {
+        class: ['outline-line', isParent && 'outline-parent', collapsed && 'is-collapsed'].filter(Boolean).join(' '),
+      }),
+      Decoration.widget(pos + 1, () => bulletWidget(kind), { side: -1, ignoreSelection: true, key: `bullet-${kind}` }),
+    )
+    if (isParent) {
+      decos.push(
+        Decoration.widget(pos + 1, (view, getPos) => toggleButton(view, getPos, collapsed), {
+          side: -1,
+          ignoreSelection: true,
+          key: `toggle-${collapsed ? 'c' : 'o'}`,
+          stopEvent: () => true,
+        }),
+      )
+    }
+  })
+  for (const { pos, node } of items) {
     const collapsed = Boolean(node.attrs.collapsed)
     decos.push(Decoration.node(pos, pos + node.nodeSize, { class: collapsed ? 'outline-parent is-collapsed' : 'outline-parent' }))
     decos.push(
@@ -143,7 +178,7 @@ function inItem(editor: Editor): string | null {
   return ITEMS.find((t) => editor.isActive(t)) ?? null
 }
 
-export const Outline = Extension.create({
+export const Outline = Extension.create<{ bulletsOn: () => boolean }>({
   name: 'outline',
   priority: 1000,
 
@@ -156,7 +191,8 @@ export const Outline = Extension.create({
             default: 0,
             keepOnSplit: true,
             parseHTML: (el) => Number(el.getAttribute('data-indent')) || 0,
-            renderHTML: (attrs) => (attrs.indent ? { 'data-indent': attrs.indent, style: `margin-left: ${attrs.indent * 1.75}rem` } : {}),
+            // The depth goes into a CSS variable, which sets the padding and draws the guide lines.
+            renderHTML: (attrs) => (attrs.indent ? { 'data-indent': attrs.indent, style: `--indent: ${attrs.indent}` } : {}),
           },
         },
       },
@@ -180,7 +216,39 @@ export const Outline = Extension.create({
         (delta) =>
         ({ editor }) =>
           changeIndent(editor, delta),
+      setAllCollapsed:
+        (collapsed) =>
+        ({ state, dispatch }) => {
+          const { parents, items } = analyse(state.doc)
+          const tr = state.tr
+          for (const { pos, node } of [...parents, ...items]) {
+            if (Boolean(node.attrs.collapsed) !== collapsed) tr.setNodeAttribute(pos, 'collapsed', collapsed)
+          }
+          // Keep the cursor on something visible.
+          if (collapsed) tr.setSelection(TextSelection.atStart(tr.doc))
+          if (dispatch) dispatch(tr)
+          return true
+        },
     }
+  },
+
+  addOptions() {
+    return { bulletsOn: () => true }
+  },
+
+  addInputRules() {
+    // With bullets on, every line already is a bullet, so "- " or "* " at the start of a line just clears
+    // instead of starting a separate bullet list (which would look like a second kind of bullet).
+    return [
+      new InputRule({
+        find: /^\s*[-+*]\s$/,
+        handler: ({ state, range }) => {
+          const $from = state.doc.resolve(range.from)
+          if (!this.options.bulletsOn() || $from.depth !== 1 || $from.parent.type.name !== 'paragraph') return null
+          state.tr.delete(range.from, range.to)
+        },
+      }),
+    ]
   },
 
   addKeyboardShortcuts() {

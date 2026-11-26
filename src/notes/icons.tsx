@@ -1,0 +1,55 @@
+import {
+  Bold,
+  Code,
+  Columns3,
+  Heading1,
+  Heading2,
+  Heading3,
+  Highlighter,
+  Italic,
+  Link,
+  List,
+  ListChecks,
+  ListOrdered,
+  Minus,
+  Pilcrow,
+  Quote,
+  Rows3,
+  SquareCode,
+  Strikethrough,
+  Table,
+  TableProperties,
+  Trash2,
+  Underline,
+  type LucideIcon,
+} from 'lucide-react'
+import type { SlashIcon } from './slash'
+
+// One icon set for every editor menu.
+export const SLASH_ICONS: Record<SlashIcon, LucideIcon> = {
+  text: Pilcrow,
+  h1: Heading1,
+  h2: Heading2,
+  h3: Heading3,
+  bullet: List,
+  numbered: ListOrdered,
+  check: ListChecks,
+  quote: Quote,
+  table: Table,
+  code: SquareCode,
+  divider: Minus,
+}
+
+export const EditorIcons = {
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Highlighter,
+  Code,
+  Link,
+  Rows3,
+  Columns3,
+  TableProperties,
+  Trash2,
+}
