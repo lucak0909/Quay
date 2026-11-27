@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type DragEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Dialog from '../components/Dialog'
 import Menu from '../components/Menu'
+import MoveDialog, { FolderIcon } from '../components/MoveDialog'
 import { db, type Folder, type Note } from '../db'
 import {
   createFolder,
@@ -17,7 +18,7 @@ import {
   updateFolder,
 } from '../folders/actions'
 import { colorInfo, COLOR_IDS, FOLDER_COLORS } from '../folders/colors'
-import { canMoveFolder, childFolders, decksIn, flattenTree, folderPath, folderTotals, parentIn, subtreeIds } from '../folders/tree'
+import { canMoveFolder, childFolders, decksIn, folderPath, folderTotals, parentIn, subtreeIds } from '../folders/tree'
 import { totalDue } from '../srs/queue'
 import { useDeckSummaries, type DeckSummary } from '../srs/store'
 import { btn, btnDanger, btnSecondary, input, link, muted, panel , title } from '../ui'
@@ -423,7 +424,9 @@ function Library({ decks, folders, notes }: { decks: DeckSummary[]; folders: Fol
 function NameInput({ initial, onDone }: { initial: string; onDone: (name: string | null) => void }) {
   const ref = useRef<HTMLInputElement>(null)
   const done = useRef(false)
-  useEffect(() => ref.current?.select(), [])
+  useEffect(() => {
+    ref.current?.select()
+  }, [])
   const finish = (name: string | null) => {
     if (done.current) return
     done.current = true
@@ -446,48 +449,6 @@ function NameInput({ initial, onDone }: { initial: string; onDone: (name: string
   )
 }
 
-function MoveDialog({
-  item,
-  folders,
-  current,
-  onMove,
-  onClose,
-}: {
-  item: Item
-  folders: Folder[]
-  current: string | undefined
-  onMove: (target: string | undefined) => void
-  onClose: () => void
-}) {
-  const options = flattenTree(folders, item.kind === 'folder' ? new Set([item.id]) : new Set())
-  const option = 'flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-sm hover:bg-black/[.05] disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent dark:hover:bg-white/10'
-  return (
-    <Dialog title={`Move "${item.name}" to…`} onClose={onClose}>
-      <div className="max-h-80 overflow-y-auto">
-        <button type="button" className={option} disabled={current === undefined} onClick={() => onMove(undefined)}>
-          Top level {current === undefined && <span className={muted}>(here now)</span>}
-        </button>
-        {options.map(({ folder, depth }) => (
-          <button
-            key={folder.id}
-            type="button"
-            className={option}
-            style={{ paddingLeft: `${0.5 + (depth + 1) * 1}rem` }}
-            disabled={current === folder.id}
-            onClick={() => onMove(folder.id)}
-          >
-            <FolderIcon className={colorInfo(folder.color).icon} />
-            <span className="truncate">{folder.name}</span>
-            {current === folder.id && <span className={muted}>(here now)</span>}
-          </button>
-        ))}
-      </div>
-      <button type="button" className={btnSecondary} onClick={onClose}>
-        Cancel
-      </button>
-    </Dialog>
-  )
-}
 
 function DeleteFolderDialog({
   folder,
@@ -546,13 +507,6 @@ function DeleteFolderDialog({
   )
 }
 
-function FolderIcon({ className }: { className: string }) {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" className={`h-5 w-5 shrink-0 fill-current ${className}`}>
-      <path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h4l2 2h7A1.5 1.5 0 0 1 18 7.5v7a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 14.5z" />
-    </svg>
-  )
-}
 
 function shortDate(ms: number) {
   const d = new Date(ms)

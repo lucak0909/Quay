@@ -146,107 +146,126 @@ body::before {
   }
 }
 
-/* Notes editor */
+
+/* ---------------------------------------------------------------------------
+   Notes editor: a dense RemNote-style outline in Quay's glass look.
+   Every top-level line is laid out the same way: a 1.5rem bullet column per
+   level of indent, so bullets, collapse arrows and guide lines all line up.
+   --------------------------------------------------------------------------- */
+
+html {
+  /* Keep the cursor clear of the floating top bar (and the phone tab bar) when scrolling. */
+  scroll-padding-top: 6rem;
+  scroll-padding-bottom: 6rem;
+}
+
 .note-editor {
-  @apply min-h-[50vh] text-base leading-relaxed outline-none;
+  --guide: rgb(15 23 42 / 0.12);
+  min-height: 50vh;
+  font-size: 1rem;
+  line-height: 1.65;
+  outline: none;
+  caret-color: var(--color-indigo-500);
 }
-.note-editor > * + * {
-  @apply mt-3;
+@media (prefers-color-scheme: dark) {
+  .note-editor {
+    --guide: rgb(255 255 255 / 0.14);
+  }
 }
-.note-editor h1 {
-  @apply mt-6 text-2xl font-semibold;
-}
-.note-editor h2 {
-  @apply mt-5 text-xl font-semibold;
-}
-.note-editor h3 {
-  @apply mt-4 text-lg font-semibold;
-}
-.note-editor ul {
-  @apply list-disc pl-6;
-}
-.note-editor ol {
-  @apply list-decimal pl-6;
-}
-.note-editor li > p {
-  @apply my-0.5;
-}
-.note-editor ul[data-type="taskList"] {
-  @apply list-none pl-1;
-}
-.note-editor ul[data-type="taskList"] li {
-  @apply flex items-start gap-2;
-}
-.note-editor ul[data-type="taskList"] li > label {
-  @apply mt-1 select-none;
-}
-.note-editor ul[data-type="taskList"] li > label input {
-  @apply h-4 w-4 accent-indigo-600;
-}
-.note-editor ul[data-type="taskList"] li > div {
-  @apply flex-1;
-}
-.note-editor ul[data-type="taskList"] li[data-checked="true"] > div {
-  @apply text-slate-400 line-through;
-}
-.note-editor blockquote {
-  @apply border-l-4 border-slate-300 pl-4 text-slate-600 dark:border-slate-600 dark:text-slate-300;
-}
-.note-editor code {
-  @apply rounded bg-slate-100 px-1 py-0.5 font-mono text-sm dark:bg-slate-800;
-}
-.note-editor pre {
-  @apply overflow-x-auto rounded-md bg-slate-900 p-3 font-mono text-sm text-slate-100;
-}
-.note-editor pre code {
-  @apply bg-transparent p-0 text-inherit;
-}
-.note-editor mark {
-  @apply rounded bg-yellow-200 px-0.5 text-inherit dark:bg-yellow-700/60;
-}
-.note-editor a {
-  @apply text-indigo-600 underline dark:text-indigo-400;
-}
-.note-editor hr {
-  @apply my-6 border-slate-300 dark:border-slate-700;
-}
-.note-editor :is(p, h1, h2, h3).is-empty::before {
-  content: attr(data-placeholder);
-  @apply pointer-events-none float-left h-0 font-normal text-slate-400/80 dark:text-slate-500;
-}
-.note-editor :is(h1, h2, h3).is-empty::before {
-  @apply font-semibold;
+.note-editor ::selection {
+  background: rgb(99 102 241 / 0.22);
 }
 
-/* Tables */
-.note-editor .tableWrapper {
-  @apply my-4 overflow-x-auto;
+/* Outline lines: paragraphs and headings at the top level. */
+.note-editor > :is(p, h1, h2, h3) {
+  position: relative;
+  margin-left: -1.5rem;
+  padding-block: 2px;
+  padding-left: calc((var(--indent, 0) - var(--zoom-indent, 0) + 1) * 1.5rem);
 }
-.note-editor table {
-  @apply w-full border-collapse;
-  table-layout: fixed;
-}
-.note-editor :is(td, th) {
-  @apply relative border border-black/10 px-2.5 py-1.5 align-top dark:border-white/15;
-}
-.note-editor th {
-  @apply bg-white/60 text-left font-semibold dark:bg-white/[.06];
-}
-.note-editor :is(td, th) > * + * {
-  @apply mt-1.5;
-}
-.note-editor .selectedCell::after {
-  content: "";
-  @apply pointer-events-none absolute inset-0 bg-indigo-500/15;
-}
-.note-editor .column-resize-handle {
-  @apply pointer-events-none absolute -right-0.5 top-0 -bottom-0.5 w-1 bg-indigo-400;
-}
-.note-editor.resize-cursor {
-  cursor: col-resize;
+/* Guide lines: one thin line under each ancestor's bullet, drawn as a background so any depth works. */
+.note-editor > [data-indent] {
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0 calc(0.75rem - 0.5px),
+    var(--guide) calc(0.75rem - 0.5px) calc(0.75rem + 0.5px),
+    transparent calc(0.75rem + 0.5px) 1.5rem
+  );
+  background-size: calc((var(--indent, 0) - var(--zoom-indent, 0)) * 1.5rem) 100%;
+  background-repeat: no-repeat;
 }
 
-/* Outlining: collapse arrows, collapsed lines and indents. */
+.note-editor > h1 {
+  margin-top: 1.4rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.note-editor > h2 {
+  margin-top: 1.1rem;
+  font-size: 1.3rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.note-editor > h3 {
+  margin-top: 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.note-editor > :first-child {
+  margin-top: 0;
+}
+.note-editor > :is(ul, ol, blockquote, pre, hr, .tableWrapper) {
+  margin-block: 0.5rem;
+}
+
+/* Bullets: a real element per line (hidden when bullets are switched off). */
+.outline-bullet {
+  position: absolute;
+  top: 2px;
+  left: calc((var(--indent, 0) - var(--zoom-indent, 0)) * 1.5rem);
+  display: none;
+  height: 1lh;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  user-select: none;
+}
+.note-bullets .outline-bullet {
+  display: flex;
+}
+.outline-bullet > span {
+  height: 6px;
+  width: 6px;
+  border-radius: 999px;
+  background: var(--color-slate-400);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    background-color 0.15s;
+}
+.note-editor > :is(h1, h2, h3) > .outline-bullet > span {
+  background: var(--color-slate-500);
+}
+.outline-line:hover > .outline-bullet > span {
+  transform: scale(1.25);
+}
+/* A collapsed line's bullet gets a halo, RemNote's sign that there's more inside. */
+.outline-bullet.is-collapsed > span {
+  background: var(--color-indigo-500) !important;
+  box-shadow: 0 0 0 4px rgb(99 102 241 / 0.2);
+}
+@media (prefers-color-scheme: dark) {
+  .outline-bullet > span,
+  .note-editor > :is(h1, h2, h3) > .outline-bullet > span {
+    background: var(--color-slate-500);
+  }
+}
+
+/* Collapse arrows: left of the bullet, shown on hover (always when collapsed). */
 .note-editor .outline-parent {
   position: relative;
 }
@@ -274,6 +293,10 @@ body::before {
     background-color 0.15s,
     color 0.15s;
 }
+.note-editor > .outline-line > .outline-toggle {
+  top: calc(2px + (1lh - 1.25rem) / 2);
+  left: calc((var(--indent, 0) - var(--zoom-indent, 0)) * 1.5rem - 1.1rem);
+}
 .outline-toggle svg {
   height: 0.75rem;
   width: 0.75rem;
@@ -300,43 +323,201 @@ body::before {
     opacity: 0.6;
   }
 }
-/* List items: the arrow sits to the left of the bullet or number. */
 .note-editor :is(ul, ol):not([data-type="taskList"]) > li > .outline-toggle {
   left: -2.75rem;
 }
-/* Bullets on every line, like RemNote (can be turned off per device in the note menu). */
-.note-bullets .note-editor > :is(p, h1, h2, h3) {
-  display: list-item;
-  list-style: disc outside;
-}
-.note-bullets .note-editor > :is(p, h1, h2, h3)::marker {
-  color: var(--color-slate-400);
-  font-size: 1rem;
-}
-.note-bullets .note-editor > :is(h1, h2, h3)::marker {
-  color: var(--color-slate-500);
-}
-/* A collapsed line's bullet turns into a filled ring, RemNote's sign of hidden children. */
-.note-bullets .note-editor > :is(p, h1, h2, h3).is-collapsed::marker {
-  content: "◉  ";
-  color: var(--color-indigo-500);
-}
-.note-bullets .note-editor > :is(p, h1, h2, h3) > .outline-toggle {
-  left: -2.6rem;
-}
-.note-bullets .note-editor > :is(p, h1, h2, h3).is-collapsed::after {
-  content: none;
-}
-@media (prefers-color-scheme: dark) {
-  .note-bullets .note-editor > :is(p, h1, h2, h3)::marker {
-    color: var(--color-slate-500);
-  }
-}
-
-/* A collapsed line shows a small "…" so it's clear there's more inside. */
+/* Without bullets, a collapsed line shows a small "…" instead of a haloed bullet. */
 .note-editor :is(p, h1, h2, h3).is-collapsed::after,
 .note-editor li.is-collapsed > p::after,
 .note-editor li.is-collapsed > div > p:first-of-type::after {
   content: "…";
   @apply ml-1.5 inline-block rounded-full bg-indigo-500/12 px-1.5 align-middle text-xs leading-4 font-semibold text-indigo-600 dark:text-indigo-300;
+}
+.note-bullets .note-editor > :is(p, h1, h2, h3).is-collapsed::after {
+  content: none;
+}
+
+/* Placeholders on empty lines. */
+.note-editor :is(p, h1, h2, h3).is-empty::before {
+  content: attr(data-placeholder);
+  @apply pointer-events-none float-left h-0 font-normal text-slate-400/80 dark:text-slate-500;
+}
+.note-editor :is(h1, h2, h3).is-empty::before {
+  @apply font-semibold;
+}
+
+/* Numbered and bullet lists (bullet lists come from older notes or when bullets are off). */
+.note-editor ul {
+  @apply list-disc pl-6 marker:text-slate-400;
+}
+.note-editor ol {
+  @apply list-decimal pl-6 marker:text-slate-500 marker:font-medium;
+}
+.note-editor li > p {
+  margin-block: 1px;
+}
+.note-editor li > :is(ul, ol) {
+  margin-left: -0.9rem;
+  padding-left: 2.15rem;
+  border-left: 1px solid var(--guide);
+}
+
+/* Checklists: round boxes with a tick, done items fade. */
+.note-editor ul[data-type="taskList"] {
+  @apply list-none pl-0;
+}
+.note-editor ul[data-type="taskList"] li {
+  @apply flex items-start gap-2.5;
+}
+.note-editor ul[data-type="taskList"] li > label {
+  @apply flex select-none items-center;
+  height: 1lh;
+}
+.note-editor ul[data-type="taskList"] li > label input {
+  appearance: none;
+  height: 1.1rem;
+  width: 1.1rem;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-slate-300);
+  background: rgb(255 255 255 / 0.7) center / 0.7rem no-repeat;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.note-editor ul[data-type="taskList"] li > label input:checked {
+  border-color: var(--color-indigo-500);
+  background-color: var(--color-indigo-500);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.5 9.5 3.5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  .note-editor ul[data-type="taskList"] li > label input:not(:checked) {
+    border-color: var(--color-slate-600);
+    background-color: rgb(255 255 255 / 0.05);
+  }
+}
+.note-editor ul[data-type="taskList"] li > div {
+  @apply flex-1;
+}
+.note-editor ul[data-type="taskList"] li[data-checked="true"] > div {
+  @apply text-slate-400 line-through decoration-slate-300 dark:text-slate-500 dark:decoration-slate-600;
+}
+
+/* Quotes become soft callouts. */
+.note-editor blockquote {
+  @apply rounded-r-2xl border-l-[3px] border-indigo-400 bg-indigo-500/[.06] px-4 py-2 text-slate-700 dark:border-indigo-400/70 dark:bg-indigo-400/10 dark:text-slate-200;
+}
+
+/* Code. */
+.note-editor code {
+  @apply rounded-md bg-indigo-500/[.08] px-1 py-0.5 font-mono text-[0.88em] text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-200;
+}
+.note-editor pre {
+  @apply overflow-x-auto rounded-2xl border border-black/[.06] bg-slate-900/[.04] px-4 py-3 font-mono text-sm leading-relaxed text-slate-800 dark:border-white/10 dark:bg-white/[.05] dark:text-slate-200;
+}
+.note-editor pre code {
+  @apply bg-transparent p-0 text-inherit;
+  font-size: inherit;
+}
+
+/* Highlights look like a marker pen. */
+.note-editor mark {
+  color: inherit;
+  border-radius: 0.2em;
+  padding-inline: 0.1em;
+  background: linear-gradient(transparent 40%, rgb(253 224 71 / 0.75) 40%);
+}
+@media (prefers-color-scheme: dark) {
+  .note-editor mark {
+    background: linear-gradient(transparent 40%, rgb(234 179 8 / 0.38) 40%);
+  }
+}
+
+.note-editor a {
+  @apply cursor-pointer text-indigo-600 underline decoration-indigo-400/50 underline-offset-2 dark:text-indigo-300;
+}
+.note-editor hr {
+  @apply my-5 h-px border-0 bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-slate-600;
+}
+
+/* Tables: rounded frame, tinted header, row hover. */
+.note-editor .tableWrapper {
+  @apply overflow-x-auto rounded-2xl border border-black/[.08] dark:border-white/12;
+}
+.note-editor table {
+  @apply w-full border-collapse;
+  table-layout: fixed;
+  border-style: hidden;
+}
+.note-editor :is(td, th) {
+  @apply relative border border-black/[.08] px-3 py-2 align-top dark:border-white/12;
+}
+.note-editor th {
+  @apply bg-slate-900/[.035] text-left text-sm font-semibold text-slate-700 dark:bg-white/[.05] dark:text-slate-200;
+}
+.note-editor tr:hover > td {
+  @apply bg-indigo-500/[.03];
+}
+.note-editor :is(td, th) > * + * {
+  @apply mt-1.5;
+}
+.note-editor .selectedCell::after {
+  content: "";
+  @apply pointer-events-none absolute inset-0 bg-indigo-500/15;
+}
+.note-editor .column-resize-handle {
+  @apply pointer-events-none absolute -right-0.5 top-0 -bottom-0.5 w-1 bg-indigo-400;
+}
+.note-editor.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Zoomed into one line: everything else is hidden, and the zoomed line reads as a heading. */
+.note-editor .outline-out-of-zoom {
+  display: none !important;
+}
+.note-editor > .is-zoom-root {
+  margin: 0 0 0.6rem;
+  padding-left: 0;
+  background: none;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+/* Bullets can be clicked (zoom in) and dragged (move the line). */
+.outline-bullet {
+  cursor: grab;
+  touch-action: none;
+}
+.outline-bullet:hover > span {
+  box-shadow: 0 0 0 5px rgb(99 102 241 / 0.15);
+}
+body.is-dragging-line,
+body.is-dragging-line * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+.note-editor .is-drag-source {
+  opacity: 0.35;
+}
+.outline-drop-indicator {
+  position: fixed;
+  z-index: 60;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-indigo-500);
+  pointer-events: none;
+}
+.outline-drop-indicator::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  height: 8px;
+  width: 8px;
+  border-radius: 999px;
+  border: 2px solid var(--color-indigo-500);
+  background: white;
 }
