@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quay: notes and flashcards with your own AI</title>
+    <meta
+      name="description"
+      content="Quay is a free, open-source app for notes, AI-made flashcards and spaced repetition. Use your own AI account and pay only for what you use, usually a few cents."
+    />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <meta property="og:title" content="Quay: notes and flashcards with your own AI" />
+    <meta property="og:description" content="Free and open source. No subscription: you pay the AI company directly, usually a few cents." />
+    <meta property="og:image" content="assets/note-light.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backdrop" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <nav class="glass pill nav" aria-label="Main">
+        <a class="brand" href="#top"><img src="assets/logo.svg" alt="" width="28" height="28" />Quay</a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#cost">Cost</a>
+          <a href="#how">How it works</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <a class="button small accent" href="#download" data-download>Download</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <p class="eyebrow">Free · Open source · No subscription</p>
+        <h1>Notes and flashcards that pay the AI, not a&nbsp;middleman.</h1>
+        <p class="lead">
+          Write outline notes, turn them into flashcards with your own AI account, and study with spaced repetition. You
+          pay the AI company directly for what you use: usually a few cents a week.
+        </p>
+        <div class="cta" id="download">
+          <a class="button accent large" href="https://github.com/lucak0909/Quay/releases" data-download>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5 10.5 4.4v7.1H3zM11.5 4.3 21 3v8.5h-9.5zM3 12.5h7.5v7.1L3 18.5zM11.5 12.5H21V21l-9.5-1.3z" /></svg>
+            <span data-download-label>Download for Windows</span>
+          </a>
+          <a class="button glass large" href="https://github.com/lucak0909/Quay">View on GitHub</a>
+        </div>
+        <p class="fine" data-download-note>Windows 10 and 11 · macOS coming later · Free, AGPL-3.0</p>
+
+        <figure class="window">
+          <div class="window-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+          <picture>
+            <source srcset="assets/note-dark.jpg" media="(prefers-color-scheme: dark)" />
+            <img src="assets/note-light.jpg" width="2400" height="1640" alt="A Quay note about photosynthesis: bulleted outline with indented points, a highlighted phrase, a collapsed section, an equation and a table." />
+          </picture>
+        </figure>
+      </section>
+
+      <section class="section" id="cost">
+        <h2>Pay for the AI you use, not a subscription</h2>
+        <p class="section-lead">
+          Other study apps resell the same AI with a markup and cap how much you can use. Quay connects to your own AI
+          account instead, so you pay the AI company's own price. Like paying for the petrol your taxi ride uses, instead of
+          the whole taxi fare.
+        </p>
+        <div class="glass card cost">
+          <div class="cost-row head"><span></span><span>Per year</span><span>Limits</span></div>
+          <div class="cost-row quay"><span><img src="assets/logo.svg" alt="" width="20" height="20" />Quay</span><strong>about $0.20–$7</strong><span>None, except your own budget</span></div>
+          <div class="cost-row"><span>RemNote Pro with AI</span><span>$240</span><span>Monthly AI credit cap</span></div>
+          <div class="cost-row"><span>Quizlet Plus</span><span>about $36–45</span><span>Limits on AI note uploads</span></div>
+          <p class="fine">
+            Quay's range assumes 10 to 120 sets of notes a month for 9 study months, on the cheapest model of each AI company
+            it supports (prices checked November 2026). Quay shows the cost before every request and stops at the monthly
+            budget you set.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <h2>Everything you need to learn it, in one calm app</h2>
+        <div class="features">
+          <article class="glass card feature">
+            <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h13"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="M3 10a2 2 0 0 0 2 2h3"/><path d="M3 5v12a2 2 0 0 0 2 2h3"/></svg></div>
+            <h3>Outline notes, like RemNote</h3>
+            <p>Every line is a bullet. Tab to indent, collapse sections, drag lines by their bullet, click one to zoom in. Headings, checklists, tables and highlights format as you type.</p>
+          </article>
+          <article class="glass card feature">
+            <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg></div>
+            <h3>Flashcards from your notes</h3>
+            <p>Paste a chapter or open a note and choose how much detail you want. The AI decides how many cards that takes, and you check every card before it's saved.</p>
+          </article>
+          <article class="glass card feature">
+            <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg></div>
+            <h3>Real spaced repetition</h3>
+            <p>Again, Hard, Good, Easy, each showing when the card comes back. Set a test date and every card comes up before it, or cram the whole deck the night before.</p>
+          </article>
+          <article class="glass card feature">
+            <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1-.8-.4l-.9-1.2A1 1 0 0 0 15 3h-2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z"/><path d="M20 21a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-2.9a1 1 0 0 1-.88-.55l-.42-.85a1 1 0 0 0-.92-.6H13a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z"/><path d="M3 5a2 2 0 0 0 2 2h3"/><path d="M3 3v13a2 2 0 0 0 2 2h3"/></svg></div>
+            <h3>A library that stays tidy</h3>
+            <p>Nested, colour-coded folders for notes and decks, with search across everything and drag-and-drop to reorganise.</p>
+          </article>
+          <article class="glass card feature">
+            <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></div>
+            <h3>Your choice of AI</h3>
+            <p>Claude, ChatGPT or Gemini. Pick a model from a list that shows what each costs, from the cheapest up, and set a monthly budget Quay won't go over.</p>
+          </article>
+          <article class="glass card feature">
+            <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+            <h3>Private by design</h3>
+            <p>No account, no Quay server. Your notes and your AI key stay on your computer; the key is only ever sent straight to the AI company.</p>
+          </article>
+        </div>
+
+        <div class="gallery">
+          <figure class="window small-window">
+            <a href="assets/library-light.jpg" class="zoom" aria-label="Open a larger screenshot">
+              <picture>
+              <source srcset="assets/library-dark.jpg" media="(prefers-color-scheme: dark)" />
+              <img src="assets/library-light.jpg" width="2400" height="1640" loading="lazy" alt="The Library: colour-coded folders with notes and decks, and how many cards are due in each." />
+            </picture>
+            </a>
+            <figcaption>Your library: folders, notes and decks, with what's due today.</figcaption>
+          </figure>
+          <figure class="window small-window">
+            <a href="assets/study-light.jpg" class="zoom" aria-label="Open a larger screenshot">
+              <picture>
+              <source srcset="assets/study-dark.jpg" media="(prefers-color-scheme: dark)" />
+              <img src="assets/study-light.jpg" width="2400" height="1640" loading="lazy" alt="Studying a flashcard with Again, Hard, Good and Easy buttons showing when it comes back." />
+            </picture>
+            </a>
+            <figcaption>Studying: every answer says when the card comes back.</figcaption>
+          </figure>
+          <figure class="window small-window">
+            <a href="assets/make-light.jpg" class="zoom" aria-label="Open a larger screenshot">
+              <picture>
+              <source srcset="assets/make-dark.jpg" media="(prefers-color-scheme: dark)" />
+              <img src="assets/make-light.jpg" width="2400" height="1640" loading="lazy" alt="Making cards: a Detail slider, an AI model picker with prices, and the estimated cost." />
+            </picture>
+            </a>
+            <figcaption>Making cards: pick the detail, see the cost first.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section" id="how">
+        <h2>Up and running in about five minutes</h2>
+        <ol class="steps">
+          <li class="glass card"><span class="step">1</span><h3>Download and install</h3><p>Quay is a desktop app, so your library lives safely on your computer, not in a browser that might clear it.</p></li>
+          <li class="glass card"><span class="step">2</span><h3>Connect an AI account</h3><p>Quay walks you through it: make an account with an AI company, add a few dollars of credit, set a spending limit, paste your key.</p></li>
+          <li class="glass card"><span class="step">3</span><h3>Write, make cards, study</h3><p>Take notes or paste your class notes, make cards in one click, and study the ones due each day.</p></li>
+        </ol>
+      </section>
+
+      <section class="section" id="faq">
+        <h2>Questions</h2>
+        <div class="faq">
+          <details class="glass card">
+            <summary>Is Quay really free?</summary>
+            <p>Yes. Quay is open source and costs nothing. The only cost is the AI you use through your own account, which you pay to the AI company directly, at their price. Writing notes and studying cost nothing at all.</p>
+          </details>
+          <details class="glass card">
+            <summary>Why do I pay the AI company and not Quay?</summary>
+            <p>Quay doesn't run its own AI. Study apps with AI features use the same AI companies and add a markup, plus usage limits. With Quay there's no middleman: you get the AI company's price and no cap except the budget you choose.</p>
+          </details>
+          <details class="glass card">
+            <summary>How much will it cost me?</summary>
+            <p>Making cards from 10 pages of notes usually costs well under a cent on the cheapest models. Quay shows the estimated cost before every request, asks again for anything large, and stops at your monthly budget.</p>
+          </details>
+          <details class="glass card">
+            <summary>Is my AI key safe?</summary>
+            <p>Your key is stored only on your computer and only ever sent to the AI company. There's no Quay account or server, so there's nothing for anyone to leak. We also recommend setting a spending limit in your AI account.</p>
+          </details>
+          <details class="glass card">
+            <summary>Windows says "Windows protected your PC". Is that normal?</summary>
+            <p>For now, yes. Quay's installer isn't code-signed yet (we're applying to a free signing programme for open-source projects), so Windows doesn't recognise the publisher. Click <strong>More info</strong>, then <strong>Run anyway</strong>. You can check the source code on GitHub.</p>
+          </details>
+          <details class="glass card">
+            <summary>Is there a Mac or phone version?</summary>
+            <p>A macOS version is planned, then a web version you can use in a browser. Windows comes first.</p>
+          </details>
+          <details class="glass card">
+            <summary>Where are my notes stored?</summary>
+            <p>On your computer, inside Quay's own app folder. Nothing is uploaded anywhere except the text you choose to send to your AI company when making cards.</p>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="glass card footer-inner">
+        <a class="brand" href="#top"><img src="assets/logo.svg" alt="" width="24" height="24" />Quay</a>
+        <p>Free and open source under the AGPL-3.0 licence. No accounts, no tracking, no ads.</p>
+        <p class="footer-links">
+          <a href="https://github.com/lucak0909/Quay">GitHub</a>
+          <a href="https://github.com/lucak0909/Quay/releases">Releases</a>
+          <a href="mailto:quaygit@gmail.com">quaygit@gmail.com</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="download.js" defer></script>
+  </body>
+</html>
