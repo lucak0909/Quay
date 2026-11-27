@@ -152,6 +152,23 @@ export function zoomInfo(state: EditorState): ZoomInfo | null {
   return { path: chain.map((i) => ({ pos: blocks[i].pos, text: blocks[i].node.textContent || 'Untitled line' })) }
 }
 
+// Move the cursor (or the selection's head) to the start of its line when it's on the line's first visual row.
+// On later rows of a wrapped line, the browser's Home works fine, so leave it alone.
+function homeInLine(view: EditorView, extend: boolean) {
+  const { selection, doc } = view.state
+  const { $head } = selection
+  if (!$head.parent.isTextblock || $head.parentOffset === 0) return false
+  const start = $head.start()
+  try {
+    if (Math.abs(view.coordsAtPos(start, 1).top - view.coordsAtPos($head.pos, -1).top) > 4) return false
+  } catch {
+    return false
+  }
+  const next = extend ? TextSelection.create(doc, selection.anchor, start) : TextSelection.create(doc, start)
+  view.dispatch(view.state.tr.setSelection(next).scrollIntoView())
+  return true
+}
+
 function zoomTo(view: EditorView, pos: number | null) {
   const tr = view.state.tr.setMeta(key, { zoom: pos })
   if (pos != null) {
@@ -503,6 +520,10 @@ export const Outline = Extension.create<{ bulletsOn: () => boolean }>({
         if (!INDENTABLE.includes(node.type.name) || !node.attrs.indent) return false
         return changeIndent(editor, -1)
       },
+      // Home / Shift+Home on the first visual row of a line. The bullet and collapse arrow in front of the text
+      // confuse the browser's own Home, which then leaves the cursor where it was.
+      Home: ({ editor }) => homeInLine(editor.view, false),
+      'Shift-Home': ({ editor }) => homeInLine(editor.view, true),
       // Ctrl/Cmd + Up/Down collapse and expand the current line, like RemNote.
       'Mod-ArrowUp': ({ editor }) => setCollapsed(editor, true),
       'Mod-ArrowDown': ({ editor }) => setCollapsed(editor, false),

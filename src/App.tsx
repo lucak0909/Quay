@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useMonthSpend } from './cost/ledger'
+import UpdateBanner from './components/UpdateBanner'
 import { formatUsd } from './cost/pricing'
 
 const icon = (d: ReactNode) => (
@@ -82,6 +83,8 @@ export default function App() {
           )}
         </nav>
       </header>
+
+      <UpdateBanner />
 
       <main className="mx-auto max-w-4xl px-4 pb-32 pt-8 sm:pb-16">
         <Outlet />

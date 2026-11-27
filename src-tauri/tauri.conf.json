@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Quay",
-  "version": "0.1.0",
+  "version": "../package.json",
   "identifier": "io.github.lucak0909.quay",
   "build": {
     "frontendDist": "../dist",
@@ -36,7 +36,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [
+      "nsis"
+    ],
     "shortDescription": "Notes and flashcards with your own AI key",
     "longDescription": "Quay turns your notes into flashcards and quizzes using your own AI account, so you pay the AI company directly with no subscription markup, then helps you study them with spaced repetition.",
     "category": "Education",
@@ -47,6 +49,18 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFCNUU1MTlCQjRDNDc5QkYKUldTL2VjUzBtMUZlcXlTZ3RhTFBua3VtYmt2SDZLMUNJSHJzNGpHMWJSMEN0UVRkekROazJIazkK",
+      "endpoints": [
+        "https://github.com/lucak0909/Quay/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

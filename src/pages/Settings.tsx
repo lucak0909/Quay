@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { backupFileName, createBackup, readBackup, restoreBackup, saveBackupFile, type Backup, type BackupSummary } from '../backup'
+import Dialog from '../components/Dialog'
 import ErrorMessage from '../components/ErrorMessage'
 import { useMonthSpend } from '../cost/ledger'
 import { formatUsd } from '../cost/pricing'
@@ -7,7 +9,9 @@ import { loadAdapter } from '../providers'
 import { friendlyError, type FriendlyError } from '../providers/errors'
 import ModelPicker from '../components/ModelPicker'
 import { saveLimits, saveProviderSettings, useActiveProvider, useLimits, type ActiveProvider, type Limits } from '../settings'
-import { btn, btnDanger, btnSecondary, input, link, muted, okBox, panel , title } from '../ui'
+import { isDesktop } from '../desktop'
+import { APP_VERSION, checkForUpdate, type AvailableUpdate } from '../updates'
+import { btn, btnDanger, btnSecondary, errorBox, input, link, muted, okBox, panel, title } from '../ui'
 
 export default function Settings() {
   const active = useActiveProvider()
@@ -33,6 +37,8 @@ export default function Settings() {
         </section>
       )}
       <SpendingSection limits={limits} spent={spent} active={active} />
+      <BackupSection />
+      <AboutSection />
       {active && (
         <details className={panel}>
           <summary className="cursor-pointer font-semibold">Advanced</summary>
@@ -218,5 +224,157 @@ function AdvancedModel({ active }: { active: ActiveProvider }) {
         </button>
       </div>
     </div>
+  )
+}
+
+function BackupSection() {
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [status, setStatus] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
+  const [pending, setPending] = useState<{ backup: Backup; summary: BackupSummary } | null>(null)
+
+  async function save() {
+    setStatus(null)
+    try {
+      const result = await saveBackupFile(await createBackup(APP_VERSION))
+      if (result === 'saved') setStatus({ kind: 'ok', text: `Saved as ${backupFileName()}. Keep it somewhere safe, like a cloud folder or USB stick.` })
+    } catch {
+      setStatus({ kind: 'error', text: "The backup couldn't be saved. Try a different folder." })
+    }
+  }
+
+  async function choose(file: File | undefined) {
+    setStatus(null)
+    if (!file) return
+    try {
+      setPending(readBackup(await file.text()))
+    } catch (e) {
+      setStatus({ kind: 'error', text: (e as Error).message })
+    }
+  }
+
+  return (
+    <section className={`${panel} space-y-3`}>
+      <div>
+        <h2 className="font-semibold">Backup</h2>
+        <p className={muted}>
+          Save your whole library (notes, folders, decks, cards and study progress) to one file, and restore it on this or
+          another computer. Your AI key isn't included.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={btn} onClick={save}>
+          Save a backup
+        </button>
+        <button type="button" className={btnSecondary} onClick={() => fileRef.current?.click()}>
+          Restore from a backup…
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          aria-label="Choose a backup file"
+          onChange={(e) => {
+            choose(e.target.files?.[0])
+            e.target.value = ''
+          }}
+        />
+      </div>
+      {status && <p className={status.kind === 'ok' ? okBox : errorBox}>{status.text}</p>}
+      {pending && (
+        <Dialog title="Restore this backup?" onClose={() => setPending(null)}>
+          <p className="text-sm">
+            It has {pending.summary.notes} {pending.summary.notes === 1 ? 'note' : 'notes'}, {pending.summary.decks}{' '}
+            {pending.summary.decks === 1 ? 'deck' : 'decks'} ({pending.summary.cards} cards) and {pending.summary.folders}{' '}
+            {pending.summary.folders === 1 ? 'folder' : 'folders'}
+            {pending.summary.exportedAt ? `, saved ${new Date(pending.summary.exportedAt).toLocaleString()}` : ''}.
+          </p>
+          <p className="text-sm">
+            Restoring <strong>replaces everything</strong> in Quay on this computer with the backup. Your AI account stays
+            connected. If you're not sure, save a backup of what's here first.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={btnDanger}
+              onClick={async () => {
+                const { backup } = pending
+                setPending(null)
+                try {
+                  await restoreBackup(backup)
+                  setStatus({ kind: 'ok', text: 'Restored. Your library now matches the backup.' })
+                } catch {
+                  setStatus({ kind: 'error', text: "The backup couldn't be restored. Nothing was changed." })
+                }
+              }}
+            >
+              Replace with backup
+            </button>
+            <button type="button" className={btnSecondary} onClick={() => setPending(null)}>
+              Cancel
+            </button>
+          </div>
+        </Dialog>
+      )}
+    </section>
+  )
+}
+
+function AboutSection() {
+  const [state, setState] = useState<'idle' | 'checking' | 'latest' | 'failed' | 'installing'>('idle')
+  const [update, setUpdate] = useState<AvailableUpdate | null>(null)
+
+  async function check() {
+    setState('checking')
+    try {
+      const found = await checkForUpdate()
+      setUpdate(found)
+      setState(found ? 'idle' : 'latest')
+    } catch {
+      setState('failed')
+    }
+  }
+
+  return (
+    <section className={`${panel} space-y-3`}>
+      <div>
+        <h2 className="font-semibold">About Quay</h2>
+        <p className={muted}>
+          Version {APP_VERSION}. Free and open source.{' '}
+          <a href="https://github.com/lucak0909/Quay" target="_blank" rel="noreferrer" className={link}>
+            Source code ↗
+          </a>{' '}
+          ·{' '}
+          <a href="mailto:quaygit@gmail.com" className={link}>
+            Get in touch
+          </a>
+        </p>
+      </div>
+      {isDesktop ? (
+        <div className="flex flex-wrap items-center gap-3">
+          {update ? (
+            <button
+              type="button"
+              className={btn}
+              disabled={state === 'installing'}
+              onClick={() => {
+                setState('installing')
+                update.install(() => {}).catch(() => setState('failed'))
+              }}
+            >
+              {state === 'installing' ? 'Updating…' : `Update to ${update.version} and restart`}
+            </button>
+          ) : (
+            <button type="button" className={btnSecondary} disabled={state === 'checking'} onClick={check}>
+              {state === 'checking' ? 'Checking…' : 'Check for updates'}
+            </button>
+          )}
+          {state === 'latest' && <span className={muted}>You have the latest version.</span>}
+          {state === 'failed' && <span className={muted}>Couldn't check right now. Try again later.</span>}
+        </div>
+      ) : (
+        <p className={muted}>This is the web version, which is always up to date.</p>
+      )}
+    </section>
   )
 }

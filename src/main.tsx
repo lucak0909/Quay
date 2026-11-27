@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import App from './App.tsx'
-import { openExternalLinksInBrowser } from './desktop'
+import { isDesktop, openExternalLinksInBrowser } from './desktop'
 import './index.css'
 import Cram from './pages/Cram'
 import DeckView from './pages/DeckView'
@@ -34,6 +34,10 @@ const router = createBrowserRouter([
 ])
 
 openExternalLinksInBrowser()
+
+// In a browser, ask for storage that isn't cleared automatically when space runs low.
+// (The desktop app keeps its data in its own folder, so it doesn't need this.)
+if (!isDesktop) navigator.storage?.persist?.().catch(() => {})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
