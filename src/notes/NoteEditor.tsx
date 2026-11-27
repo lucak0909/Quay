@@ -83,7 +83,9 @@ export default function NoteEditor({
       attributes: { class: 'note-editor', 'aria-label': 'Note' },
       handleKeyDown: (view, event) => {
         const { selection, doc } = view.state
-        const atStart = selection.empty && selection.from <= 1
+        // At the very start of the first line (however that line is decorated).
+        const { $from } = selection
+        const atStart = selection.empty && $from.depth >= 1 && $from.index(0) === 0 && $from.parentOffset === 0
         const firstEmpty = doc.childCount === 1 && doc.firstChild?.content.size === 0
         if (atStart && (event.key === 'ArrowUp' || (event.key === 'Backspace' && firstEmpty)) && live.holder.exitTop) {
           event.preventDefault()

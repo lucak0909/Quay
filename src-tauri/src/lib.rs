@@ -10,6 +10,13 @@ pub fn run() {
             .build(),
         )?;
       }
+      // Updates come from GitHub Releases and are checked against the public key in tauri.conf.json,
+      // so only builds signed with Quay's key can be installed. The process plugin restarts after updating.
+      #[cfg(desktop)]
+      {
+        app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
+        app.handle().plugin(tauri_plugin_process::init())?;
+      }
       Ok(())
     })
     .run(tauri::generate_context!())
